@@ -96,12 +96,18 @@
   }
   header h1{font-size:1.25rem; font-weight:700; letter-spacing:.2px;}
   header p{font-size:0.8rem; color:#b9cbdc; margin-top:2px;}
-  header .right-group{display:flex; align-items:center; gap:16px; flex-wrap:wrap;}
+  header .right-group{display:flex; align-items:center; gap:16px; flex-wrap:wrap; justify-content:flex-end;}
+  @media(max-width:700px){
+    header{flex-direction:column; align-items:stretch;}
+    header .right-group{justify-content:space-between; width:100%;}
+    .sync-status{order:-1; width:100%; text-align:center; box-sizing:border-box;}
+  }
   header .clock{font-size:0.85rem; color:#cfe0ef; text-align:right;}
   .sync-status{
     font-size:0.78rem; font-weight:600; padding:5px 12px; border-radius:20px;
     background:rgba(255,255,255,0.10); border:1px solid rgba(255,255,255,0.18);
     color:#e3edf7; white-space:nowrap; transition:.2s;
+    flex-shrink:0; max-width:100%; overflow:hidden; text-overflow:ellipsis;
   }
   .sync-status.ok{color:#a7f0c7;}
   .sync-status.error{color:#ffc2bd;}
@@ -232,6 +238,9 @@
     font-weight:600; white-space:nowrap; position:sticky; top:0;
   }
   tbody td{padding:9px 8px; border-bottom:1px solid var(--border); vertical-align:top; color:var(--text);}
+  .cell-clamp{
+    max-width:240px; white-space:normal; word-break:break-word; overflow-wrap:break-word;
+  }
   tbody tr{transition:background .12s;}
   tbody tr:hover{background:var(--amber-light);}
   tbody tr:nth-child(even){background:var(--card-soft);}
@@ -659,7 +668,7 @@ function saveRecord(){
     note: document.getElementById('f-note').value.trim()
   };
   if(editId){
-    const idx = records.findIndex(r=>r.id===editId);
+    const idx = records.findIndex(r=>String(r.id)===String(editId));
     if(idx>-1) records[idx] = record;
   } else {
     records.push(record);
@@ -684,12 +693,12 @@ function resetForm(){
 }
 
 function editRecord(id){
-  const r = records.find(x=>x.id===id);
+  const r = records.find(x=>String(x.id)===String(id));
   if(!r) return;
   document.getElementById('edit-id').value = r.id;
   document.getElementById('f-date').value = r.date;
-  document.getElementById('f-start').value = r.start;
-  document.getElementById('f-end').value = r.end;
+  document.getElementById('f-start').value = formatTime(r.start);
+  document.getElementById('f-end').value = formatTime(r.end);
   document.getElementById('f-downtime').value = r.downtime;
   document.getElementById('f-machine').value = r.machine;
   document.getElementById('f-location').value = r.location;
@@ -712,7 +721,7 @@ function closeModal(){
 }
 function confirmDelete(){
   const idToDelete = deleteTargetId;
-  records = records.filter(r=>r.id !== idToDelete);
+  records = records.filter(r=>String(r.id) !== String(idToDelete));
   persist();
   closeModal();
   renderTable();
@@ -731,7 +740,7 @@ function downtimeBadge(min){
 function renderTable(){
   const tbody = document.getElementById('tableBody');
   const q = document.getElementById('searchBox').value.toLowerCase();
-  const sorted = [...records].sort((a,b)=> (a.date+a.start).localeCompare(b.date+b.start));
+  const sorted = [...records].sort((a,b)=> (b.date+b.start).localeCompare(a.date+a.start));
   const filtered = sorted.filter(r=>{
     if(!q) return true;
     return [r.machine,r.problem,r.location,r.rootcause,r.solution,r.parts,r.note]
@@ -745,22 +754,43 @@ function renderTable(){
     <tr>
       <td>${i+1}</td>
       <td>${formatDate(r.date)}</td>
-      <td>${esc(r.problem)}</td>
-      <td>${r.start}</td>
-      <td>${r.end}</td>
+      <td class="cell-clamp" title="${esc(r.problem)}">${esc(r.problem)}</td>
+      <td>${formatTime(r.start)}</td>
+      <td>${formatTime(r.end)}</td>
       <td>${downtimeBadge(r.downtime)}</td>
       <td>${esc(r.machine)}</td>
       <td>${esc(r.location)}</td>
-      <td>${esc(r.solution)}</td>
-      <td>${esc(r.rootcause)}</td>
+      <td class="cell-clamp" title="${esc(r.solution)}">${esc(r.solution)}</td>
+      <td class="cell-clamp" title="${esc(r.rootcause)}">${esc(r.rootcause)}</td>
       <td>${esc(r.parts)}</td>
-      <td>${esc(r.note)}</td>
+      <td class="cell-clamp" title="${esc(r.note)}">${esc(r.note)}</td>
       <td class="col-action">
         <button class="icon-btn" title="แก้ไข" onclick="editRecord('${r.id}')">✏️</button>
         <button class="icon-btn" title="ลบ" onclick="deleteRecord('${r.id}')">🗑️</button>
       </td>
     </tr>
   `).join('');
+}
+
+function formatTime(v){
+  if(!v) return '';
+  // Google Sheets often returns time-only cells as ISO datetime on the
+  // epoch date 1899-12-30 (e.g. "1899-12-30T07:57:56.000Z"), serialized in UTC.
+  // Convert back to Bangkok local time (UTC+7).
+  const m = String(v).match(/^1899-12-(\d{2})T(\d{2}):(\d{2})/);
+  if(m){
+    let day = Number(m[1]), h = Number(m[2]), min = Number(m[3]);
+    h += 7;
+    if(h >= 24){ h -= 24; }
+    return String(h).padStart(2,'0')+':'+String(min).padStart(2,'0');
+  }
+  // Already a plain HH:MM(:SS) string
+  const m2 = String(v).match(/^(\d{2}):(\d{2})/);
+  if(m2) return m2[1]+':'+m2[2];
+  // Full ISO datetime from another date -> just take the time part
+  const m3 = String(v).match(/T(\d{2}):(\d{2})/);
+  if(m3) return m3[1]+':'+m3[2];
+  return v;
 }
 
 function esc(s){
@@ -943,13 +973,13 @@ function renderAnalysis(){
 // ---------- Export Excel ----------
 function exportExcel(){
   if(records.length===0){ alert('ไม่มีข้อมูลให้ export'); return; }
-  const sorted = [...records].sort((a,b)=> (a.date+a.start).localeCompare(b.date+b.start));
+  const sorted = [...records].sort((a,b)=> (b.date+b.start).localeCompare(a.date+a.start));
   const data = sorted.map((r,i)=>({
     'ลำดับ': i+1,
     'วันที่': formatDate(r.date),
     'ปัญหา': r.problem,
-    'เวลาเริ่มมีปัญหา': r.start,
-    'เวลาแก้ไขเสร็จ': r.end,
+    'เวลาเริ่มมีปัญหา': formatTime(r.start),
+    'เวลาแก้ไขเสร็จ': formatTime(r.end),
     'Downtime (นาที)': r.downtime,
     'เครื่อง': r.machine,
     'สถานที่': r.location,
@@ -960,8 +990,8 @@ function exportExcel(){
   }));
   const ws = XLSX.utils.json_to_sheet(data);
   ws['!cols'] = [
-    {wch:6},{wch:12},{wch:30},{wch:12},{wch:12},{wch:12},
-    {wch:18},{wch:16},{wch:30},{wch:30},{wch:20},{wch:20}
+    {wch:6},{wch:12},{wch:45},{wch:12},{wch:12},{wch:14},
+    {wch:20},{wch:18},{wch:45},{wch:45},{wch:25},{wch:35}
   ];
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Problem & Downtime');
@@ -973,7 +1003,7 @@ function exportPDF(){
   if(records.length===0){ alert('ไม่มีข้อมูลให้ export'); return; }
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({orientation:'landscape', unit:'mm', format:'a4'});
-  const sorted = [...records].sort((a,b)=> (a.date+a.start).localeCompare(b.date+b.start));
+  const sorted = [...records].sort((a,b)=> (b.date+b.start).localeCompare(a.date+a.start));
 
   doc.setFont('Sarabun','bold');
   doc.setFontSize(14);
@@ -984,20 +1014,20 @@ function exportPDF(){
   doc.text(`สร้างเมื่อ: ${new Date().toLocaleString('th-TH')}    จำนวนรายการ: ${records.length}    Downtime รวม: ${totalDowntime} นาที`, 14, 18);
 
   const body = sorted.map((r,i)=>[
-    i+1, formatDate(r.date), r.problem, r.start, r.end, r.downtime, r.machine, r.location, r.solution, r.rootcause, r.parts, r.note
+    i+1, formatDate(r.date), r.problem, formatTime(r.start), formatTime(r.end), r.downtime, r.machine, r.location, r.solution, r.rootcause, r.parts, r.note
   ]);
 
   doc.autoTable({
     startY: 24,
     head: [['ลำดับ','วันที่','ปัญหา','เวลาเริ่ม','เวลาเสร็จ','Downtime(นาที)','เครื่อง','สถานที่','วิธีแก้ไข','ปัญหาที่แท้จริง','อะไหล่ที่เสีย','หมายเหตุ']],
     body: body,
-    styles:{font:'Sarabun', fontStyle:'normal', fontSize:7, cellPadding:1.5, overflow:'linebreak'},
-    headStyles:{font:'Sarabun', fontStyle:'bold', fillColor:[15,41,66], textColor:255},
+    styles:{font:'Sarabun', fontStyle:'normal', fontSize:7.5, cellPadding:2, overflow:'linebreak', valign:'top'},
+    headStyles:{font:'Sarabun', fontStyle:'bold', fillColor:[15,41,66], textColor:255, fontSize:8},
     alternateRowStyles:{fillColor:[243,245,247]},
     columnStyles:{
-      0:{cellWidth:8}, 1:{cellWidth:16}, 2:{cellWidth:32}, 3:{cellWidth:12}, 4:{cellWidth:12},
-      5:{cellWidth:14}, 6:{cellWidth:24}, 7:{cellWidth:18}, 8:{cellWidth:32}, 9:{cellWidth:32},
-      10:{cellWidth:20}, 11:{cellWidth:20}
+      0:{cellWidth:7}, 1:{cellWidth:15}, 2:{cellWidth:38}, 3:{cellWidth:12}, 4:{cellWidth:12},
+      5:{cellWidth:15}, 6:{cellWidth:22}, 7:{cellWidth:18}, 8:{cellWidth:38}, 9:{cellWidth:38},
+      10:{cellWidth:22}, 11:{cellWidth:26}
     }
   });
 
