@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ำปยนพะ<!DOCTYPE html>
 <html lang="th">
 <head>
 <meta charset="UTF-8">
@@ -291,6 +291,28 @@
   @media print{
     header, .tabs, .actions-row, .table-toolbar, footer, .col-action{display:none !important;}
   }
+
+  /* ---------- Date-range filter bar ---------- */
+  .dash-filter-bar{
+    display:flex; align-items:center; flex-wrap:wrap; gap:6px;
+    padding:10px 14px; background:var(--card); border-radius:var(--radius-sm);
+    border:1px solid var(--border); margin-top:14px;
+  }
+  .filter-btn{
+    padding:5px 13px; border-radius:20px; border:1px solid var(--border);
+    background:var(--card); color:var(--text-soft); font-size:0.82rem; font-weight:500;
+    cursor:pointer; transition:var(--transition);
+  }
+  .filter-btn:hover{ background:var(--amber-light); color:var(--amber); border-color:var(--amber); }
+  .filter-btn.active{ background:var(--amber); color:#fff; border-color:var(--amber); font-weight:700; }
+  .dash-custom-range{
+    display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+    padding-left:8px; border-left:2px solid var(--border); margin-left:4px;
+  }
+  .dash-custom-range input[type="date"],
+  .dash-custom-range input[type="month"]{
+    height:30px;
+  }
 </style>
 </head>
 <body>
@@ -368,6 +390,26 @@
         <div class="chart-wrap"><canvas id="chartLocation"></canvas></div>
       </div>
     </div>
+
+    <div class="dash-filter-bar">
+      <span style="font-size:0.88rem; color:var(--text-soft); font-weight:600;">📅 กรองช่วงเวลา:</span>
+      <button class="filter-btn" data-range="week">สัปดาห์นี้</button>
+      <button class="filter-btn" data-range="lastweek">สัปดาห์ที่แล้ว</button>
+      <button class="filter-btn active" data-range="month">เดือนนี้</button>
+      <button class="filter-btn" data-range="last3">3 เดือนล่าสุด</button>
+      <button class="filter-btn" data-range="year">ปีนี้</button>
+      <button class="filter-btn" data-range="all">ทั้งหมด</button>
+      <div class="dash-custom-range">
+        <span style="font-size:0.82rem; color:var(--text-soft);">หรือกำหนดเอง:</span>
+        <input type="date" id="dashFrom" title="วันที่เริ่ม" style="padding:4px 8px; border-radius:6px; border:1px solid var(--border); background:var(--card); color:var(--text); font-size:0.82rem;">
+        <span style="font-size:0.82rem; color:var(--text-soft);">ถึง</span>
+        <input type="date" id="dashTo" title="วันที่สิ้นสุด" style="padding:4px 8px; border-radius:6px; border:1px solid var(--border); background:var(--card); color:var(--text); font-size:0.82rem;">
+        <button class="filter-btn" id="dashCustomBtn" onclick="applyCustomRange()" style="padding:5px 12px;">🔍 ดูข้อมูล</button>
+        <button class="filter-btn" id="dashMonthPick" onclick="toggleMonthPicker()" title="เลือกเดือน" style="padding:5px 10px;">📆 เลือกเดือน</button>
+        <input type="month" id="dashMonthInput" onchange="applyMonthPick()" style="display:none; padding:4px 8px; border-radius:6px; border:1px solid var(--border); background:var(--card); color:var(--text); font-size:0.82rem;">
+      </div>
+      <span id="dashRangeLabel" style="font-size:0.8rem; color:var(--amber); font-weight:600; margin-left:4px;"></span>
+    </div>
   </div>
 
   <!-- ENTRY FORM -->
@@ -432,14 +474,23 @@
   <div class="tab-content" id="history">
     <div class="card">
       <h2>📋 ประวัติการบันทึกทั้งหมด</h2>
+      <div class="dash-filter-bar" style="margin-bottom:10px;">
+        <span style="font-size:0.88rem; color:var(--text-soft); font-weight:600;">📅 ช่วงเวลา:</span>
+        <button class="filter-btn" data-hrange="week">สัปดาห์นี้</button>
+        <button class="filter-btn" data-hrange="lastweek">สัปดาห์ที่แล้ว</button>
+        <button class="filter-btn active" data-hrange="month">เดือนนี้</button>
+        <button class="filter-btn" data-hrange="last3">3 เดือนล่าสุด</button>
+        <button class="filter-btn" data-hrange="year">ปีนี้</button>
+        <button class="filter-btn" data-hrange="all">ทั้งหมด</button>
+      </div>
       <div class="table-toolbar">
         <div class="search">
           <input type="text" id="searchBox" placeholder="🔍 ค้นหา (เครื่อง, ปัญหา, สถานที่...)" oninput="renderTable()">
         </div>
         <div style="display:flex; gap:8px;">
           <button class="btn btn-outline btn-sm" onclick="loadFromSheet()">🔄 รีเฟรชจาก Sheet</button>
-          <button class="btn btn-green btn-sm" onclick="exportExcel()">📊 Export Excel</button>
-          <button class="btn btn-red btn-sm" onclick="exportPDF()">📄 Export PDF</button>
+          <button class="btn btn-green btn-sm" onclick="openExportModal('excel')">📊 Export Excel</button>
+          <button class="btn btn-red btn-sm" onclick="openExportModal('pdf')">📄 Export PDF</button>
         </div>
       </div>
       <div class="table-wrap">
@@ -453,6 +504,20 @@
           </thead>
           <tbody id="tableBody"></tbody>
         </table>
+      </div>
+      <div id="paginationBar" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-top:12px; padding:4px 2px;">
+        <div id="paginationInfo" style="font-size:0.85rem; color:var(--text-soft);"></div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <label style="font-size:0.85rem; color:var(--text-soft);">แสดงหน้าละ</label>
+          <select id="pageSizeSelect" onchange="changePageSize()" style="padding:4px 8px; border-radius:6px; border:1px solid var(--border); background:var(--card); color:var(--text); font-size:0.85rem;">
+            <option value="10">10</option>
+            <option value="20" selected>20</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+          </select>
+          <label style="font-size:0.85rem; color:var(--text-soft);">รายการ</label>
+        </div>
+        <div id="paginationBtns" style="display:flex; gap:4px; flex-wrap:wrap;"></div>
       </div>
     </div>
   </div>
@@ -502,6 +567,53 @@
   </div>
 </div>
 
+<!-- Export filter modal -->
+<div class="modal-bg" id="exportModal">
+  <div class="modal" style="max-width:560px;">
+    <h3 id="exportModalTitle">📊 Export Excel — กรองข้อมูล</h3>
+    <p style="font-size:0.85rem; color:var(--text-soft); margin-bottom:14px;">เลือกเงื่อนไขที่ต้องการ หรือปล่อยว่างเพื่อ export ทั้งหมด</p>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px 16px; margin-bottom:16px;">
+      <div>
+        <label style="font-size:0.82rem; font-weight:600; color:var(--text-soft); display:block; margin-bottom:4px;">📅 วันที่เริ่มต้น</label>
+        <input type="date" id="exp-from" style="width:100%; padding:6px 10px; border-radius:8px; border:1px solid var(--border); background:var(--card); color:var(--text); font-size:0.85rem;">
+      </div>
+      <div>
+        <label style="font-size:0.82rem; font-weight:600; color:var(--text-soft); display:block; margin-bottom:4px;">📅 วันที่สิ้นสุด</label>
+        <input type="date" id="exp-to" style="width:100%; padding:6px 10px; border-radius:8px; border:1px solid var(--border); background:var(--card); color:var(--text); font-size:0.85rem;">
+      </div>
+      <div>
+        <label style="font-size:0.82rem; font-weight:600; color:var(--text-soft); display:block; margin-bottom:4px;">🗓️ หรือเลือกเดือน</label>
+        <input type="month" id="exp-month" style="width:100%; padding:6px 10px; border-radius:8px; border:1px solid var(--border); background:var(--card); color:var(--text); font-size:0.85rem;">
+      </div>
+      <div>
+        <label style="font-size:0.82rem; font-weight:600; color:var(--text-soft); display:block; margin-bottom:4px;">⚙️ เครื่องจักร</label>
+        <select id="exp-machine" style="width:100%; padding:6px 10px; border-radius:8px; border:1px solid var(--border); background:var(--card); color:var(--text); font-size:0.85rem;">
+          <option value="">ทั้งหมด</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:0.82rem; font-weight:600; color:var(--text-soft); display:block; margin-bottom:4px;">📍 สถานที่/แผนก</label>
+        <select id="exp-location" style="width:100%; padding:6px 10px; border-radius:8px; border:1px solid var(--border); background:var(--card); color:var(--text); font-size:0.85rem;">
+          <option value="">ทั้งหมด</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:0.82rem; font-weight:600; color:var(--text-soft); display:block; margin-bottom:4px;">⏱️ Downtime ขั้นต่ำ (นาที)</label>
+        <input type="number" id="exp-mindown" min="0" placeholder="เช่น 30" style="width:100%; padding:6px 10px; border-radius:8px; border:1px solid var(--border); background:var(--card); color:var(--text); font-size:0.85rem;">
+      </div>
+    </div>
+
+    <div id="expPreview" style="font-size:0.83rem; color:var(--amber); font-weight:600; margin-bottom:14px; min-height:18px;"></div>
+
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeExportModal()">ยกเลิก</button>
+      <button class="btn btn-outline" onclick="resetExportFilter()" style="margin-right:auto;">↺ ล้างตัวกรอง</button>
+      <button class="btn btn-green" id="doExportBtn" onclick="doExport()">📥 Export</button>
+    </div>
+  </div>
+</div>
+
 <footer>ระบบบันทึกปัญหาและ Downtime — ข้อมูลซิงค์กับ Google Sheets (สำรองในเครื่องไว้กรณีออฟไลน์)</footer>
 
 <script>
@@ -511,6 +623,114 @@ const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbxucvmzAmBOr0Sa44
 let records = JSON.parse(localStorage.getItem('downtimeRecords') || '[]');
 let deleteTargetId = null;
 let charts = {};
+let dashRange = 'month';   // current dashboard date-range filter
+let histRange = 'month';   // current history date-range filter
+let dashCustomFrom = null; // custom date range override
+let dashCustomTo   = null;
+
+// ---------- Date-range helpers ----------
+function getRangeDates(range){
+  const today = new Date();
+  today.setHours(23,59,59,999);
+  let from = new Date(today);
+  switch(range){
+    case 'week': {
+      const day = today.getDay(); // 0=Sun
+      from = new Date(today);
+      from.setDate(today.getDate() - (day === 0 ? 6 : day - 1));
+      from.setHours(0,0,0,0);
+      break;
+    }
+    case 'lastweek': {
+      const day = today.getDay();
+      const startThisWeek = new Date(today);
+      startThisWeek.setDate(today.getDate() - (day === 0 ? 6 : day - 1));
+      startThisWeek.setHours(0,0,0,0);
+      from = new Date(startThisWeek);
+      from.setDate(from.getDate() - 7);
+      today.setTime(startThisWeek.getTime() - 1); // end = last saturday 23:59
+      break;
+    }
+    case 'month': {
+      from = new Date(today.getFullYear(), today.getMonth(), 1, 0, 0, 0, 0);
+      break;
+    }
+    case 'last3': {
+      from = new Date(today);
+      from.setMonth(from.getMonth() - 2);
+      from.setDate(1);
+      from.setHours(0,0,0,0);
+      break;
+    }
+    case 'year': {
+      from = new Date(today.getFullYear(), 0, 1, 0, 0, 0, 0);
+      break;
+    }
+    case 'all':
+    default:
+      return null; // no filter
+  }
+  return { from, to: today };
+}
+
+function filterByRange(list, range){
+  let from, to;
+  if(range === 'custom'){
+    if(!dashCustomFrom || !dashCustomTo) return list;
+    from = dashCustomFrom;
+    to   = dashCustomTo;
+  } else {
+    const r = getRangeDates(range);
+    if(!r) return list;
+    from = r.from;
+    to   = r.to;
+  }
+  return list.filter(rec=>{
+    if(!rec.date) return false;
+    const dateStr = String(rec.date).slice(0, 10);
+    const d = new Date(dateStr + 'T00:00:00');
+    return d >= from && d <= to;
+  });
+}
+
+function rangeLabel(range){
+  const r = getRangeDates(range);
+  if(!r) return 'ข้อมูลทั้งหมด';
+  const fmt = d => d.toLocaleDateString('th-TH',{day:'2-digit',month:'short',year:'numeric'});
+  return `${fmt(r.from)} – ${fmt(r.to)}`;
+}
+
+function applyCustomRange(){
+  const f = document.getElementById('dashFrom').value;
+  const t = document.getElementById('dashTo').value;
+  if(!f || !t){ alert('กรุณาเลือกวันที่เริ่มต้นและสิ้นสุด'); return; }
+  if(f > t){ alert('วันที่เริ่มต้นต้องไม่เกินวันที่สิ้นสุด'); return; }
+  dashCustomFrom = new Date(f + 'T00:00:00');
+  dashCustomTo   = new Date(t + 'T23:59:59');
+  dashRange = 'custom';
+  // clear preset active
+  document.querySelectorAll('.filter-btn[data-range]').forEach(b=>b.classList.remove('active'));
+  document.getElementById('dashCustomBtn').classList.add('active');
+  renderDashboard();
+}
+
+function applyMonthPick(){
+  const val = document.getElementById('dashMonthInput').value; // 'YYYY-MM'
+  if(!val) return;
+  const [y, m] = val.split('-').map(Number);
+  dashCustomFrom = new Date(y, m-1, 1, 0, 0, 0, 0);
+  dashCustomTo   = new Date(y, m, 0, 23, 59, 59, 999); // last day of month
+  dashRange = 'custom';
+  document.querySelectorAll('.filter-btn[data-range]').forEach(b=>b.classList.remove('active'));
+  document.getElementById('dashMonthPick').classList.add('active');
+  renderDashboard();
+}
+
+function toggleMonthPicker(){
+  const el = document.getElementById('dashMonthInput');
+  el.style.display = el.style.display === 'none' ? 'inline-block' : 'none';
+  if(el.style.display !== 'none') el.focus();
+}
 
 // ---------- Theme ----------
 function applyTheme(theme){
@@ -539,6 +759,32 @@ document.getElementById('themeToggle').addEventListener('click', ()=>{
   applyTheme(current === 'dark' ? 'light' : 'dark');
 });
 initTheme();
+
+// ---------- Date-range filter buttons ----------
+document.querySelectorAll('.filter-btn[data-range]').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.filter-btn[data-range]').forEach(b=>b.classList.remove('active'));
+    document.getElementById('dashCustomBtn')?.classList.remove('active');
+    document.getElementById('dashMonthPick')?.classList.remove('active');
+    btn.classList.add('active');
+    dashRange = btn.dataset.range;
+    dashCustomFrom = null;
+    dashCustomTo   = null;
+    // hide month picker if open
+    const mp = document.getElementById('dashMonthInput');
+    if(mp) mp.style.display = 'none';
+    renderDashboard();
+  });
+});
+document.querySelectorAll('.filter-btn[data-hrange]').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.filter-btn[data-hrange]').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    histRange = btn.dataset.hrange;
+    currentPage = 1;
+    renderTable();
+  });
+});
 
 // ---------- Clock ----------
 function updateClock(){
@@ -731,28 +977,55 @@ function confirmDelete(){
 }
 
 // ---------- Table ----------
+let currentPage = 1;
+let pageSize = 20;
+let filteredCache = [];
+
+function changePageSize(){
+  pageSize = Number(document.getElementById('pageSizeSelect').value);
+  currentPage = 1;
+  renderTable();
+}
+
+function goToPage(p){
+  currentPage = p;
+  renderTable(true);
+}
+
 function downtimeBadge(min){
   if(min >= 60) return '<span class="badge badge-high">'+min+' นาที</span>';
   if(min >= 20) return '<span class="badge badge-mid">'+min+' นาที</span>';
   return '<span class="badge badge-low">'+min+' นาที</span>';
 }
 
-function renderTable(){
+function renderTable(keepPage){
+  if(!keepPage) currentPage = 1;
   const tbody = document.getElementById('tableBody');
   const q = document.getElementById('searchBox').value.toLowerCase();
   const sorted = [...records].sort((a,b)=> (b.date+b.start).localeCompare(a.date+a.start));
-  const filtered = sorted.filter(r=>{
+  const rangeFiltered = filterByRange(sorted, histRange);
+  filteredCache = rangeFiltered.filter(r=>{
     if(!q) return true;
     return [r.machine,r.problem,r.location,r.rootcause,r.solution,r.parts,r.note]
       .join(' ').toLowerCase().includes(q);
   });
-  if(filtered.length===0){
+
+  if(filteredCache.length===0){
     tbody.innerHTML = '<tr class="empty-row"><td colspan="13">ยังไม่มีข้อมูลบันทึก — ไปที่แท็บ "บันทึกข้อมูล" เพื่อเริ่มต้น</td></tr>';
+    document.getElementById('paginationBar').style.display = 'none';
     return;
   }
-  tbody.innerHTML = filtered.map((r,i)=>`
+
+  const totalPages = Math.ceil(filteredCache.length / pageSize);
+  if(currentPage > totalPages) currentPage = totalPages;
+
+  const start = (currentPage - 1) * pageSize;
+  const end = Math.min(start + pageSize, filteredCache.length);
+  const pageItems = filteredCache.slice(start, end);
+
+  tbody.innerHTML = pageItems.map((r,i)=>`
     <tr>
-      <td>${i+1}</td>
+      <td>${start + i + 1}</td>
       <td>${formatDate(r.date)}</td>
       <td class="cell-clamp" title="${esc(r.problem)}">${esc(r.problem)}</td>
       <td>${formatTime(r.start)}</td>
@@ -770,6 +1043,39 @@ function renderTable(){
       </td>
     </tr>
   `).join('');
+
+  // Pagination bar
+  document.getElementById('paginationBar').style.display = 'flex';
+  document.getElementById('paginationInfo').textContent =
+    `แสดง ${start+1}–${end} จาก ${filteredCache.length} รายการ`;
+
+  // Sync select
+  document.getElementById('pageSizeSelect').value = String(pageSize);
+
+  // Page buttons
+  const btnsEl = document.getElementById('paginationBtns');
+  let btnsHtml = '';
+  const btnStyle = (active) =>
+    `style="padding:5px 10px; border-radius:6px; border:1px solid var(--border); cursor:pointer; font-size:0.82rem; font-weight:${active?'700':'400'}; background:${active?'var(--amber)':'var(--card)'}; color:${active?'#fff':'var(--text)'};"`;
+
+  btnsHtml += `<button ${btnStyle(false)} onclick="goToPage(1)" ${currentPage===1?'disabled':''}>«</button>`;
+  btnsHtml += `<button ${btnStyle(false)} onclick="goToPage(${currentPage-1})" ${currentPage===1?'disabled':''}>‹</button>`;
+
+  // Show window of pages around current
+  let pageStart = Math.max(1, currentPage - 2);
+  let pageEnd   = Math.min(totalPages, currentPage + 2);
+  if(pageStart > 1) btnsHtml += `<button ${btnStyle(false)} onclick="goToPage(1)">1</button>`;
+  if(pageStart > 2) btnsHtml += `<span style="padding:5px 4px; color:var(--text-soft);">…</span>`;
+  for(let p = pageStart; p <= pageEnd; p++){
+    btnsHtml += `<button ${btnStyle(p===currentPage)} onclick="goToPage(${p})">${p}</button>`;
+  }
+  if(pageEnd < totalPages - 1) btnsHtml += `<span style="padding:5px 4px; color:var(--text-soft);">…</span>`;
+  if(pageEnd < totalPages) btnsHtml += `<button ${btnStyle(false)} onclick="goToPage(${totalPages})">${totalPages}</button>`;
+
+  btnsHtml += `<button ${btnStyle(false)} onclick="goToPage(${currentPage+1})" ${currentPage===totalPages?'disabled':''}>›</button>`;
+  btnsHtml += `<button ${btnStyle(false)} onclick="goToPage(${totalPages})" ${currentPage===totalPages?'disabled':''}>»</button>`;
+
+  btnsEl.innerHTML = btnsHtml;
 }
 
 function formatTime(v){
@@ -804,8 +1110,19 @@ function formatDate(d){
 
 // ---------- Dashboard ----------
 function renderDashboard(){
-  const total = records.length;
-  const totalDowntime = records.reduce((s,r)=>s+r.downtime,0);
+  const dash = filterByRange(records, dashRange);
+  const labelEl = document.getElementById('dashRangeLabel');
+  if(labelEl){
+    if(dashRange === 'custom' && dashCustomFrom && dashCustomTo){
+      const fmt = d => d.toLocaleDateString('th-TH',{day:'2-digit',month:'short',year:'numeric'});
+      labelEl.textContent = `📌 ${fmt(dashCustomFrom)} – ${fmt(dashCustomTo)}  (${dash.length} รายการ)`;
+    } else {
+      labelEl.textContent = rangeLabel(dashRange) + `  (${dash.length} รายการ)`;
+    }
+  }
+
+  const total = dash.length;
+  const totalDowntime = dash.reduce((s,r)=>s+r.downtime,0);
   document.getElementById('kpi-total').textContent = total;
   document.getElementById('kpi-downtime').textContent = totalDowntime.toLocaleString();
   document.getElementById('kpi-downtime-hr').textContent = (totalDowntime/60).toFixed(1)+' ชั่วโมง';
@@ -813,34 +1130,68 @@ function renderDashboard(){
 
   // top machine
   const machineMap = {};
-  records.forEach(r=>{ machineMap[r.machine] = (machineMap[r.machine]||0)+1; });
+  dash.forEach(r=>{ machineMap[r.machine] = (machineMap[r.machine]||0)+1; });
   const topM = Object.entries(machineMap).sort((a,b)=>b[1]-a[1])[0];
   document.getElementById('kpi-topmachine').textContent = topM ? topM[0] : '-';
   document.getElementById('kpi-topmachine-count').textContent = topM ? topM[1]+' ครั้ง' : '-';
 
-  // monthly downtime chart
-  const monthMap = {};
-  records.forEach(r=>{
+  // chart label format — use weekly if range is week/lastweek, daily if month, monthly otherwise
+  const useWeekly  = (dashRange==='week'||dashRange==='lastweek');
+  const useDaily   = (dashRange==='month');
+
+  // time-series downtime chart
+  const timeMap = {};
+  dash.forEach(r=>{
     if(!r.date) return;
-    const m = r.date.slice(0,7);
-    monthMap[m] = (monthMap[m]||0)+r.downtime;
+    let key;
+    if(useDaily){
+      key = r.date; // YYYY-MM-DD
+    } else if(useWeekly){
+      key = r.date; // show each day in the week
+    } else {
+      key = r.date.slice(0,7); // YYYY-MM
+    }
+    timeMap[key] = (timeMap[key]||0)+r.downtime;
   });
-  const months = Object.keys(monthMap).sort();
+  const timeKeys = Object.keys(timeMap).sort();
+  const timeLabels = timeKeys.map(k=>{
+    if(useDaily || useWeekly){
+      const d = new Date(k+'T00:00:00');
+      return d.toLocaleDateString('th-TH',{weekday:'short',day:'numeric',month:'short'});
+    }
+    return monthLabel(k);
+  });
+  const chartTitle = useWeekly ? 'Downtime รายวัน (นาที)' : useDaily ? 'Downtime รายวัน (นาที)' : 'Downtime รายเดือน (นาที)';
+  // Update chart title in DOM
+  const chartMonthlyTitle = document.querySelector('#chartMonthly')?.closest('.chart-card')?.querySelector('h3');
+  if(chartMonthlyTitle) chartMonthlyTitle.textContent = chartTitle;
+
   drawChart('chartMonthly','bar',{
-    labels: months.map(m=>monthLabel(m)),
-    datasets:[{label:'Downtime (นาที)', data: months.map(m=>monthMap[m]), backgroundColor:'#e8932e', borderRadius:4}]
+    labels: timeLabels,
+    datasets:[{label:'Downtime (นาที)', data: timeKeys.map(k=>timeMap[k]), backgroundColor:'#e8932e', borderRadius:4}]
   },{plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}}});
 
-  // machine pie
+  // machine pie — limit to top 8, others grouped
+  const allMachineEntries = Object.entries(machineMap).sort((a,b)=>b[1]-a[1]);
+  let pieLabels, pieData;
+  if(allMachineEntries.length > 8){
+    const top8 = allMachineEntries.slice(0,8);
+    const othersCount = allMachineEntries.slice(8).reduce((s,e)=>s+e[1],0);
+    pieLabels = [...top8.map(e=>e[0]), 'อื่นๆ'];
+    pieData   = [...top8.map(e=>e[1]), othersCount];
+  } else {
+    pieLabels = allMachineEntries.map(e=>e[0]);
+    pieData   = allMachineEntries.map(e=>e[1]);
+  }
   drawChart('chartMachine','doughnut',{
-    labels: Object.keys(machineMap),
-    datasets:[{data: Object.values(machineMap), backgroundColor: palette(Object.keys(machineMap).length)}]
+    labels: pieLabels,
+    datasets:[{data: pieData, backgroundColor: palette(pieLabels.length)}]
   },{plugins:{legend:{position:'bottom', labels:{boxWidth:12,font:{size:11}}}}});
 
-  // root cause top5
+  // root cause top 5 (by selected range)
   const causeMap = {};
-  records.forEach(r=>{
-    const c = r.rootcause.trim() || 'ไม่ระบุ';
+  dash.forEach(r=>{
+    const c = (r.rootcause||'').trim() || 'ไม่ระบุ';
     causeMap[c] = (causeMap[c]||0)+1;
   });
   const topCauses = Object.entries(causeMap).sort((a,b)=>b[1]-a[1]).slice(0,5);
@@ -849,12 +1200,23 @@ function renderDashboard(){
     datasets:[{label:'จำนวนครั้ง', data: topCauses.map(c=>c[1]), backgroundColor:'#0f2942', borderRadius:4}]
   },{indexAxis:'y', plugins:{legend:{display:false}}, scales:{x:{beginAtZero:true,ticks:{precision:0}}}});
 
-  // location downtime
+  // location downtime (top 8, others grouped)
   const locMap = {};
-  records.forEach(r=>{ locMap[r.location] = (locMap[r.location]||0)+r.downtime; });
+  dash.forEach(r=>{ locMap[r.location] = (locMap[r.location]||0)+r.downtime; });
+  const allLocEntries = Object.entries(locMap).sort((a,b)=>b[1]-a[1]);
+  let locLabels, locData;
+  if(allLocEntries.length > 8){
+    const top8 = allLocEntries.slice(0,8);
+    const othersMin = allLocEntries.slice(8).reduce((s,e)=>s+e[1],0);
+    locLabels = [...top8.map(e=>e[0]), 'อื่นๆ'];
+    locData   = [...top8.map(e=>e[1]), othersMin];
+  } else {
+    locLabels = allLocEntries.map(e=>e[0]);
+    locData   = allLocEntries.map(e=>e[1]);
+  }
   drawChart('chartLocation','bar',{
-    labels: Object.keys(locMap),
-    datasets:[{label:'Downtime (นาที)', data: Object.values(locMap), backgroundColor:'#5b7a99', borderRadius:4}]
+    labels: locLabels,
+    datasets:[{label:'Downtime (นาที)', data: locData, backgroundColor:'#5b7a99', borderRadius:4}]
   },{plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}}});
 }
 
@@ -970,11 +1332,109 @@ function renderAnalysis(){
   insightList.innerHTML = insights.join('');
 }
 
+// ---------- Export modal ----------
+let exportType = 'excel'; // 'excel' | 'pdf'
+
+function openExportModal(type){
+  exportType = type;
+  document.getElementById('exportModalTitle').textContent =
+    type === 'excel' ? '📊 Export Excel — กรองข้อมูล' : '📄 Export PDF — กรองข้อมูล';
+  document.getElementById('doExportBtn').textContent =
+    type === 'excel' ? '📊 Export Excel' : '📄 Export PDF';
+
+  // Populate machine & location dropdowns from current records
+  const machines  = [...new Set(records.map(r=>r.machine).filter(Boolean))].sort();
+  const locations = [...new Set(records.map(r=>r.location).filter(Boolean))].sort();
+
+  const mSel = document.getElementById('exp-machine');
+  mSel.innerHTML = '<option value="">ทั้งหมด</option>' +
+    machines.map(m=>`<option value="${esc(m)}">${esc(m)}</option>`).join('');
+
+  const lSel = document.getElementById('exp-location');
+  lSel.innerHTML = '<option value="">ทั้งหมด</option>' +
+    locations.map(l=>`<option value="${esc(l)}">${esc(l)}</option>`).join('');
+
+  updateExpPreview();
+  document.getElementById('exportModal').classList.add('active');
+}
+
+function closeExportModal(){
+  document.getElementById('exportModal').classList.remove('active');
+}
+
+function resetExportFilter(){
+  ['exp-from','exp-to','exp-month','exp-mindown'].forEach(id=>{ document.getElementById(id).value=''; });
+  document.getElementById('exp-machine').value  = '';
+  document.getElementById('exp-location').value = '';
+  updateExpPreview();
+}
+
+function getExportFiltered(){
+  let from = null, to = null;
+
+  // month picker overrides date range
+  const monthVal = document.getElementById('exp-month').value;
+  if(monthVal){
+    const [y,m] = monthVal.split('-').map(Number);
+    from = new Date(y, m-1, 1, 0, 0, 0, 0);
+    to   = new Date(y, m,   0, 23, 59, 59, 999);
+  } else {
+    const fv = document.getElementById('exp-from').value;
+    const tv = document.getElementById('exp-to').value;
+    if(fv) from = new Date(fv + 'T00:00:00');
+    if(tv) to   = new Date(tv + 'T23:59:59');
+  }
+
+  const machine  = document.getElementById('exp-machine').value;
+  const location = document.getElementById('exp-location').value;
+  const minDown  = Number(document.getElementById('exp-mindown').value) || 0;
+
+  return records.filter(r=>{
+    if(from || to){
+      const dateStr = String(r.date).slice(0,10);
+      const d = new Date(dateStr + 'T00:00:00');
+      if(from && d < from) return false;
+      if(to   && d > to  ) return false;
+    }
+    if(machine  && r.machine  !== machine ) return false;
+    if(location && r.location !== location) return false;
+    if(minDown  && r.downtime < minDown   ) return false;
+    return true;
+  }).sort((a,b)=>(b.date+b.start).localeCompare(a.date+a.start));
+}
+
+function updateExpPreview(){
+  const data = getExportFiltered();
+  const el = document.getElementById('expPreview');
+  if(data.length === 0){
+    el.textContent = '⚠️ ไม่พบข้อมูลที่ตรงเงื่อนไข';
+    el.style.color = 'var(--red)';
+  } else {
+    const total = data.reduce((s,r)=>s+r.downtime,0);
+    el.textContent = `✅ จะ export ${data.length} รายการ  |  Downtime รวม ${total.toLocaleString()} นาที`;
+    el.style.color = 'var(--amber)';
+  }
+}
+
+// Attach live preview on filter change
+['exp-from','exp-to','exp-month','exp-mindown','exp-machine','exp-location'].forEach(id=>{
+  document.getElementById(id)?.addEventListener('change', updateExpPreview);
+  document.getElementById(id)?.addEventListener('input',  updateExpPreview);
+});
+
+function doExport(){
+  const data = getExportFiltered();
+  if(data.length === 0){ alert('ไม่มีข้อมูลที่ตรงเงื่อนไข'); return; }
+  closeExportModal();
+  if(exportType === 'excel') exportExcel(data);
+  else                       exportPDF(data);
+}
+
 // ---------- Export Excel ----------
-function exportExcel(){
-  if(records.length===0){ alert('ไม่มีข้อมูลให้ export'); return; }
-  const sorted = [...records].sort((a,b)=> (b.date+b.start).localeCompare(a.date+a.start));
-  const data = sorted.map((r,i)=>({
+function exportExcel(data){
+  if(!data){ data = records; }
+  if(data.length===0){ alert('ไม่มีข้อมูลให้ export'); return; }
+  const rows = data.map((r,i)=>({
     'ลำดับ': i+1,
     'วันที่': formatDate(r.date),
     'ปัญหา': r.problem,
@@ -988,7 +1448,7 @@ function exportExcel(){
     'อะไหล่ที่เสีย': r.parts,
     'หมายเหตุ': r.note
   }));
-  const ws = XLSX.utils.json_to_sheet(data);
+  const ws = XLSX.utils.json_to_sheet(rows);
   ws['!cols'] = [
     {wch:6},{wch:12},{wch:45},{wch:12},{wch:12},{wch:14},
     {wch:20},{wch:18},{wch:45},{wch:45},{wch:25},{wch:35}
@@ -999,21 +1459,21 @@ function exportExcel(){
 }
 
 // ---------- Export PDF ----------
-function exportPDF(){
-  if(records.length===0){ alert('ไม่มีข้อมูลให้ export'); return; }
+function exportPDF(data){
+  if(!data){ data = records; }
+  if(data.length===0){ alert('ไม่มีข้อมูลให้ export'); return; }
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({orientation:'landscape', unit:'mm', format:'a4'});
-  const sorted = [...records].sort((a,b)=> (b.date+b.start).localeCompare(a.date+a.start));
 
   doc.setFont('Sarabun','bold');
   doc.setFontSize(14);
   doc.text('รายงานปัญหาและ Downtime (Problem & Downtime Report)', 14, 12);
   doc.setFont('Sarabun','normal');
   doc.setFontSize(9);
-  const totalDowntime = records.reduce((s,r)=>s+r.downtime,0);
-  doc.text(`สร้างเมื่อ: ${new Date().toLocaleString('th-TH')}    จำนวนรายการ: ${records.length}    Downtime รวม: ${totalDowntime} นาที`, 14, 18);
+  const totalDowntime = data.reduce((s,r)=>s+r.downtime,0);
+  doc.text(`สร้างเมื่อ: ${new Date().toLocaleString('th-TH')}    จำนวนรายการ: ${data.length}    Downtime รวม: ${totalDowntime} นาที`, 14, 18);
 
-  const body = sorted.map((r,i)=>[
+  const body = data.map((r,i)=>[
     i+1, formatDate(r.date), r.problem, formatTime(r.start), formatTime(r.end), r.downtime, r.machine, r.location, r.solution, r.rootcause, r.parts, r.note
   ]);
 
