@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="th">
-<head>
-<meta charset="UTF-8">
+<!-- saved from url=(0061)file:///C:/Users/Jiranan%20Gaming/Desktop/Downtime/index.html -->
+<html lang="th"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ระบบบันทึกปัญหาและ Downtime | Maintenance Tracker</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.1/jspdf.plugin.autotable.min.js"></script>
+<script src="./ระบบบันทึกปัญหาและ Downtime _ Maintenance Tracker_files/chart.umd.min.js.ดาวน์โหลด"></script>
+<script src="./ระบบบันทึกปัญหาและ Downtime _ Maintenance Tracker_files/jspdf.umd.min.js.ดาวน์โหลด"></script>
+<script src="./ระบบบันทึกปัญหาและ Downtime _ Maintenance Tracker_files/jspdf.plugin.autotable.min.js.ดาวน์โหลด"></script>
 <script>
 // Sarabun Thai font for jsPDF (embedded base64)
 (function(){
@@ -22,7 +22,7 @@
   }
 })();
 </script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="./ระบบบันทึกปัญหาและ Downtime _ Maintenance Tracker_files/xlsx.full.min.js.ดาวน์โหลด"></script>
 <style>
   :root{
     --navy:#0f2942;
@@ -321,13 +321,13 @@
   <div class="title">
     <div class="icon">⚙️</div>
     <div>
-      <h1>ระบบบันทึกปัญหาและ Downtime (Problem & Downtime Tracker)</h1>
+      <h1>ระบบบันทึกปัญหาและ Downtime (Problem &amp; Downtime Tracker)</h1>
       <p>สำหรับฝ่ายซ่อมบำรุง / ผลิต — ใช้บันทึก วิเคราะห์ และนำเสนอข้อมูลปัญหาเครื่องจักร</p>
     </div>
   </div>
   <div class="right-group">
-    <div class="sync-status" id="syncStatus">⏳ กำลังเชื่อมต่อ...</div>
-    <div class="clock" id="clock"></div>
+    <div class="sync-status error" id="syncStatus">⚠️ โหลดจาก Sheet ไม่ได้ (ใช้ข้อมูลในเครื่อง)</div>
+    <div class="clock" id="clock">วันศุกร์ที่ 12 มิถุนายน 2569 • 22:34:16</div>
     <div class="theme-toggle" id="themeToggle" role="button" aria-label="สลับธีมสว่าง/มืด">
       <span class="label" id="themeLabel">☀️ Light</span>
       <div class="track"><div class="knob" id="themeKnob"></div></div>
@@ -339,8 +339,8 @@
 
   <div class="tabs">
     <button class="tab-btn active" data-tab="dashboard">📊 แดชบอร์ด</button>
-    <button class="tab-btn" data-tab="entry">📝 บันทึกข้อมูล</button>
     <button class="tab-btn" data-tab="history">📋 ประวัติทั้งหมด</button>
+    <button class="tab-btn" data-tab="entry">📝 บันทึกข้อมูล</button>
     <button class="tab-btn" data-tab="analysis">🔍 วิเคราะห์ปัญหา</button>
   </div>
 
@@ -349,45 +349,45 @@
     <div class="kpi-grid">
       <div class="kpi-card red">
         <div class="kpi-label">จำนวนปัญหาทั้งหมด</div>
-        <div class="kpi-value" id="kpi-total">0</div>
+        <div class="kpi-value" id="kpi-total">1</div>
         <div class="kpi-sub">รายการที่บันทึกไว้</div>
       </div>
       <div class="kpi-card amber">
         <div class="kpi-label">Downtime รวม (นาที)</div>
-        <div class="kpi-value" id="kpi-downtime">0</div>
-        <div class="kpi-sub" id="kpi-downtime-hr">0 ชั่วโมง</div>
+        <div class="kpi-value" id="kpi-downtime">67</div>
+        <div class="kpi-sub" id="kpi-downtime-hr">1.1 ชั่วโมง</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">Downtime เฉลี่ย/ครั้ง</div>
-        <div class="kpi-value" id="kpi-avg">0</div>
+        <div class="kpi-value" id="kpi-avg">67</div>
         <div class="kpi-sub">นาที / ครั้ง</div>
       </div>
       <div class="kpi-card green">
         <div class="kpi-label">เครื่องที่มีปัญหามากที่สุด</div>
-        <div class="kpi-value" id="kpi-topmachine" style="font-size:1.2rem;">-</div>
-        <div class="kpi-sub" id="kpi-topmachine-count">-</div>
+        <div class="kpi-value" id="kpi-topmachine" style="font-size:1.2rem;">Brake test</div>
+        <div class="kpi-sub" id="kpi-topmachine-count">1 ครั้ง</div>
       </div>
     </div>
 
     <div class="charts-grid">
       <div class="chart-card">
-        <h3>Downtime รายเดือน (นาที)</h3>
-        <div class="chart-wrap"><canvas id="chartMonthly"></canvas></div>
+        <h3>Downtime รายวัน (นาที)</h3>
+        <div class="chart-wrap"><canvas id="chartMonthly" style="box-sizing: border-box; display: block; height: 280px; width: 742px;" width="742" height="280"></canvas></div>
       </div>
       <div class="chart-card">
         <h3>สัดส่วนปัญหาตามเครื่องจักร</h3>
-        <div class="chart-wrap"><canvas id="chartMachine"></canvas></div>
+        <div class="chart-wrap"><canvas id="chartMachine" style="box-sizing: border-box; display: block; height: 280px; width: 518px;" width="518" height="280"></canvas></div>
       </div>
     </div>
 
     <div class="charts-grid-3">
       <div class="chart-card">
         <h3>Top 5 สาเหตุที่แท้จริง (Root Cause) ตามความถี่</h3>
-        <div class="chart-wrap"><canvas id="chartCause"></canvas></div>
+        <div class="chart-wrap"><canvas id="chartCause" style="box-sizing: border-box; display: block; height: 280px; width: 630px;" width="630" height="280"></canvas></div>
       </div>
       <div class="chart-card">
         <h3>Downtime ตามสถานที่/แผนก</h3>
-        <div class="chart-wrap"><canvas id="chartLocation"></canvas></div>
+        <div class="chart-wrap"><canvas id="chartLocation" style="box-sizing: border-box; display: block; height: 280px; width: 630px;" width="630" height="280"></canvas></div>
       </div>
     </div>
 
@@ -408,11 +408,84 @@
         <button class="filter-btn" id="dashMonthPick" onclick="toggleMonthPicker()" title="เลือกเดือน" style="padding:5px 10px;">📆 เลือกเดือน</button>
         <input type="month" id="dashMonthInput" onchange="applyMonthPick()" style="display:none; padding:4px 8px; border-radius:6px; border:1px solid var(--border); background:var(--card); color:var(--text); font-size:0.82rem;">
       </div>
-      <span id="dashRangeLabel" style="font-size:0.8rem; color:var(--amber); font-weight:600; margin-left:4px;"></span>
+      <span id="dashRangeLabel" style="font-size:0.8rem; color:var(--amber); font-weight:600; margin-left:4px;">01 มิ.ย. 2569 – 12 มิ.ย. 2569  (1 รายการ)</span>
     </div>
   </div>
 
   <!-- ENTRY FORM -->
+  <div class="tab-content" id="history">
+    <div class="card">
+      <h2>📋 ประวัติการบันทึกทั้งหมด</h2>
+      <div class="dash-filter-bar" style="margin-bottom:10px;">
+        <span style="font-size:0.88rem; color:var(--text-soft); font-weight:600;">📅 ช่วงเวลา:</span>
+        <button class="filter-btn" data-hrange="week">สัปดาห์นี้</button>
+        <button class="filter-btn" data-hrange="lastweek">สัปดาห์ที่แล้ว</button>
+        <button class="filter-btn active" data-hrange="month">เดือนนี้</button>
+        <button class="filter-btn" data-hrange="last3">3 เดือนล่าสุด</button>
+        <button class="filter-btn" data-hrange="year">ปีนี้</button>
+        <button class="filter-btn" data-hrange="all">ทั้งหมด</button>
+      </div>
+      <div class="table-toolbar">
+        <div class="search">
+          <input type="text" id="searchBox" placeholder="🔍 ค้นหา (เครื่อง, ปัญหา, สถานที่...)" oninput="renderTable()">
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-outline btn-sm" onclick="loadFromSheet()">🔄 รีเฟรชจาก Sheet</button>
+          <button class="btn btn-green btn-sm" onclick="openExportModal(&#39;excel&#39;)">📊 Export Excel</button>
+          <button class="btn btn-red btn-sm" onclick="openExportModal(&#39;pdf&#39;)">📄 Export PDF</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table id="dataTable">
+          <thead>
+            <tr>
+              <th>ลำดับ</th><th>วันที่</th><th>ปัญหา</th><th>เวลาเริ่ม</th><th>เวลาเสร็จ</th>
+              <th>Downtime (นาที)</th><th>เครื่อง</th><th>สถานที่</th><th>วิธีแก้ไข</th>
+              <th>ปัญหาที่แท้จริง</th><th>อะไหล่ที่เสีย</th><th>หมายเหตุ</th><th>จัดการ</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody">
+    <tr>
+      <td>1</td>
+      <td>12/06/2569</td>
+      <td class="cell-clamp" title="ตู้ควบคุมเครื่องเทสเบรคดับ ไม่สามารถเทสระบบเบรครถได้">ตู้ควบคุมเครื่องเทสเบรคดับ ไม่สามารถเทสระบบเบรครถได้</td>
+      <td>14:57</td>
+      <td>16:04</td>
+      <td><span class="badge badge-high">67 นาที</span></td>
+      <td>Brake test</td>
+      <td>Tester Line</td>
+      <td class="cell-clamp" title="1.เช็คปัญหาระบบไฟฟ้า 
+2.เปลี่ยน Circuit Breaker ใหม่">1.เช็คปัญหาระบบไฟฟ้า 
+2.เปลี่ยน Circuit Breaker ใหม่</td>
+      <td class="cell-clamp" title="สายไฟเฟสที่ 2 (Phase 2 ) หลวมจากการติดตั้ง เมื่อเครื่องเทสเบรคใช้กระแสไฟฟ้าเยอะจะส่งผลให้สายไฟเฟสที่ 2 ร้อน ทำให้เบรคเกอร์ชำรุด">สายไฟเฟสที่ 2 (Phase 2 ) หลวมจากการติดตั้ง เมื่อเครื่องเทสเบรคใช้กระแสไฟฟ้าเยอะจะส่งผลให้สายไฟเฟสที่ 2 ร้อน ทำให้เบรคเกอร์ชำรุด</td>
+      <td>Circuit Breaker C63</td>
+      <td class="cell-clamp" title="รออะไหล่จึงทำให้ใช้เวลา Downtime เยอะ">รออะไหล่จึงทำให้ใช้เวลา Downtime เยอะ</td>
+      <td class="col-action">
+        <button class="icon-btn" title="แก้ไข" onclick="editRecord(&#39;1781260136075&#39;)">✏️</button>
+        <button class="icon-btn" title="ลบ" onclick="deleteRecord(&#39;1781260136075&#39;)">🗑️</button>
+      </td>
+    </tr>
+  </tbody>
+        </table>
+      </div>
+      <div id="paginationBar" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-top:12px; padding:4px 2px;">
+        <div id="paginationInfo" style="font-size:0.85rem; color:var(--text-soft);">แสดง 1–1 จาก 1 รายการ</div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <label style="font-size:0.85rem; color:var(--text-soft);">แสดงหน้าละ</label>
+          <select id="pageSizeSelect" onchange="changePageSize()" style="padding:4px 8px; border-radius:6px; border:1px solid var(--border); background:var(--card); color:var(--text); font-size:0.85rem;">
+            <option value="10">10</option>
+            <option value="20" selected="">20</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+          </select>
+          <label style="font-size:0.85rem; color:var(--text-soft);">รายการ</label>
+        </div>
+        <div id="paginationBtns" style="display:flex; gap:4px; flex-wrap:wrap;"><button style="padding:5px 10px; border-radius:6px; border:1px solid var(--border); cursor:pointer; font-size:0.82rem; font-weight:400; background:var(--card); color:var(--text);" onclick="goToPage(1)" disabled="">«</button><button style="padding:5px 10px; border-radius:6px; border:1px solid var(--border); cursor:pointer; font-size:0.82rem; font-weight:400; background:var(--card); color:var(--text);" onclick="goToPage(0)" disabled="">‹</button><button style="padding:5px 10px; border-radius:6px; border:1px solid var(--border); cursor:pointer; font-size:0.82rem; font-weight:700; background:var(--amber); color:#fff;" onclick="goToPage(1)">1</button><button style="padding:5px 10px; border-radius:6px; border:1px solid var(--border); cursor:pointer; font-size:0.82rem; font-weight:400; background:var(--card); color:var(--text);" onclick="goToPage(2)" disabled="">›</button><button style="padding:5px 10px; border-radius:6px; border:1px solid var(--border); cursor:pointer; font-size:0.82rem; font-weight:400; background:var(--card); color:var(--text);" onclick="goToPage(1)" disabled="">»</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HISTORY -->
   <div class="tab-content" id="entry">
     <div class="card">
       <h2 id="form-title">📝 บันทึกปัญหาใหม่</h2>
@@ -420,35 +493,35 @@
       <div class="form-grid">
         <div>
           <label>วันที่ *</label>
-          <input type="date" id="f-date" required>
+          <input type="date" id="f-date" required="">
         </div>
         <div>
           <label>เวลาเริ่มมีปัญหา *</label>
-          <input type="time" id="f-start" required>
+          <input type="time" id="f-start" required="">
         </div>
         <div>
           <label>เวลาแก้ไขเสร็จ *</label>
-          <input type="time" id="f-end" required>
+          <input type="time" id="f-end" required="">
         </div>
         <div>
           <label>Downtime (นาที)</label>
-          <input type="number" id="f-downtime" readonly placeholder="คำนวณอัตโนมัติ" style="background:var(--border); opacity:0.8;">
+          <input type="number" id="f-downtime" readonly="" placeholder="คำนวณอัตโนมัติ" style="background:var(--border); opacity:0.8;">
         </div>
         <div>
           <label>เครื่องจักร *</label>
-          <input type="text" id="f-machine" placeholder="เช่น Injection Machine #3" required>
+          <input type="text" id="f-machine" placeholder="เช่น Injection Machine #3" required="">
         </div>
         <div>
           <label>สถานที่ / แผนก *</label>
-          <input type="text" id="f-location" placeholder="เช่น Line A / โซน 2" required>
+          <input type="text" id="f-location" placeholder="เช่น Line A / โซน 2" required="">
         </div>
         <div class="full">
           <label>ปัญหาที่เกิดขึ้น *</label>
-          <textarea id="f-problem" placeholder="อธิบายอาการ/ปัญหาที่พบ" required></textarea>
+          <textarea id="f-problem" placeholder="อธิบายอาการ/ปัญหาที่พบ" required=""></textarea>
         </div>
         <div class="full">
           <label>วิธีแก้ไข *</label>
-          <textarea id="f-solution" placeholder="ขั้นตอนการแก้ไขที่ดำเนินการ" required></textarea>
+          <textarea id="f-solution" placeholder="ขั้นตอนการแก้ไขที่ดำเนินการ" required=""></textarea>
         </div>
         <div class="full">
           <label>ปัญหาที่แท้จริง (Root Cause)</label>
@@ -470,58 +543,6 @@
     </div>
   </div>
 
-  <!-- HISTORY -->
-  <div class="tab-content" id="history">
-    <div class="card">
-      <h2>📋 ประวัติการบันทึกทั้งหมด</h2>
-      <div class="dash-filter-bar" style="margin-bottom:10px;">
-        <span style="font-size:0.88rem; color:var(--text-soft); font-weight:600;">📅 ช่วงเวลา:</span>
-        <button class="filter-btn" data-hrange="week">สัปดาห์นี้</button>
-        <button class="filter-btn" data-hrange="lastweek">สัปดาห์ที่แล้ว</button>
-        <button class="filter-btn active" data-hrange="month">เดือนนี้</button>
-        <button class="filter-btn" data-hrange="last3">3 เดือนล่าสุด</button>
-        <button class="filter-btn" data-hrange="year">ปีนี้</button>
-        <button class="filter-btn" data-hrange="all">ทั้งหมด</button>
-      </div>
-      <div class="table-toolbar">
-        <div class="search">
-          <input type="text" id="searchBox" placeholder="🔍 ค้นหา (เครื่อง, ปัญหา, สถานที่...)" oninput="renderTable()">
-        </div>
-        <div style="display:flex; gap:8px;">
-          <button class="btn btn-outline btn-sm" onclick="loadFromSheet()">🔄 รีเฟรชจาก Sheet</button>
-          <button class="btn btn-green btn-sm" onclick="openExportModal('excel')">📊 Export Excel</button>
-          <button class="btn btn-red btn-sm" onclick="openExportModal('pdf')">📄 Export PDF</button>
-        </div>
-      </div>
-      <div class="table-wrap">
-        <table id="dataTable">
-          <thead>
-            <tr>
-              <th>ลำดับ</th><th>วันที่</th><th>ปัญหา</th><th>เวลาเริ่ม</th><th>เวลาเสร็จ</th>
-              <th>Downtime (นาที)</th><th>เครื่อง</th><th>สถานที่</th><th>วิธีแก้ไข</th>
-              <th>ปัญหาที่แท้จริง</th><th>อะไหล่ที่เสีย</th><th>หมายเหตุ</th><th>จัดการ</th>
-            </tr>
-          </thead>
-          <tbody id="tableBody"></tbody>
-        </table>
-      </div>
-      <div id="paginationBar" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-top:12px; padding:4px 2px;">
-        <div id="paginationInfo" style="font-size:0.85rem; color:var(--text-soft);"></div>
-        <div style="display:flex; align-items:center; gap:8px;">
-          <label style="font-size:0.85rem; color:var(--text-soft);">แสดงหน้าละ</label>
-          <select id="pageSizeSelect" onchange="changePageSize()" style="padding:4px 8px; border-radius:6px; border:1px solid var(--border); background:var(--card); color:var(--text); font-size:0.85rem;">
-            <option value="10">10</option>
-            <option value="20" selected>20</option>
-            <option value="50">50</option>
-            <option value="100">100</option>
-          </select>
-          <label style="font-size:0.85rem; color:var(--text-soft);">รายการ</label>
-        </div>
-        <div id="paginationBtns" style="display:flex; gap:4px; flex-wrap:wrap;"></div>
-      </div>
-    </div>
-  </div>
-
   <!-- ANALYSIS -->
   <div class="tab-content" id="analysis">
     <div class="card">
@@ -529,27 +550,27 @@
       <div class="kpi-grid" style="margin-bottom:18px;">
         <div class="kpi-card">
           <div class="kpi-label">วันที่มีข้อมูล</div>
-          <div class="kpi-value" id="a-days">0</div>
+          <div class="kpi-value" id="a-days">11</div>
           <div class="kpi-sub">วัน</div>
         </div>
         <div class="kpi-card amber">
           <div class="kpi-label">Downtime สูงสุดต่อครั้ง</div>
-          <div class="kpi-value" id="a-max">0</div>
-          <div class="kpi-sub" id="a-max-detail">นาที</div>
+          <div class="kpi-value" id="a-max">1140</div>
+          <div class="kpi-sub" id="a-max-detail">VIN Code (12/05/2569)</div>
         </div>
         <div class="kpi-card red">
           <div class="kpi-label">เครื่องที่ Downtime สูงสุด</div>
-          <div class="kpi-value" id="a-machine" style="font-size:1.2rem;">-</div>
-          <div class="kpi-sub" id="a-machine-detail">-</div>
+          <div class="kpi-value" id="a-machine" style="font-size:1.2rem;">VIN Code</div>
+          <div class="kpi-sub" id="a-machine-detail">1150 นาที รวม</div>
         </div>
         <div class="kpi-card green">
           <div class="kpi-label">ปัญหาที่เกิดซ้ำมากที่สุด</div>
-          <div class="kpi-value" id="a-recurring" style="font-size:1.0rem;">-</div>
-          <div class="kpi-sub" id="a-recurring-count">-</div>
+          <div class="kpi-value" id="a-recurring" style="font-size:1.0rem;">Hanger ค้าง</div>
+          <div class="kpi-sub" id="a-recurring-count">เกิดซ้ำ 8 ครั้ง</div>
         </div>
       </div>
       <h2 style="margin-top:6px;">💡 ข้อเสนอแนะอัตโนมัติ</h2>
-      <div class="insight-list" id="insightList"></div>
+      <div class="insight-list" id="insightList"><div class="insight-item">📌 รวม Downtime ทั้งหมด <b>1,829 นาที</b> (30.5 ชั่วโมง) จากเหตุการณ์ <b>35</b> ครั้ง</div><div class="insight-item">🏭 เครื่องจักรที่ควรให้ความสำคัญที่สุดคือ <b>VIN Code</b> ซึ่งสูญเสียเวลารวม <b>1150 นาที</b> — แนะนำให้จัดทำแผน PM เชิงป้องกันสำหรับเครื่องนี้</div><div class="insight-item">🔁 ปัญหา "<b>Hanger ค้าง</b>" เกิดขึ้นซ้ำ <b>8 ครั้ง</b> — ควรตรวจสอบสาเหตุที่แท้จริงและกำหนดมาตรการป้องกันถาวร (Permanent Corrective Action)</div><div class="insight-item">⏱️ เหตุการณ์ที่ใช้เวลาแก้ไขนานที่สุดคือ <b>1140 นาที</b> (VIN Code วันที่ 12/05/2569) — ควรทบทวนแผนเผชิญเหตุเพื่อลดเวลาตอบสนอง</div><div class="insight-item">🔧 อะไหล่ที่เปลี่ยนบ่อยที่สุดคือ "<b>-</b>" (11 ครั้ง) — ควรพิจารณาสำรองสต็อกเพิ่มเติมหรือตรวจสอบคุณภาพอะไหล่</div></div>
     </div>
   </div>
 
@@ -1506,5 +1527,6 @@ renderDashboard();
 renderAnalysis();
 loadFromSheet();
 </script>
-</body>
-</html>
+
+
+</body></html>
