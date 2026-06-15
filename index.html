@@ -1144,11 +1144,11 @@ function renderDashboard(){
     if(!r.date) return;
     let key;
     if(useDaily){
-      key = r.date; // YYYY-MM-DD
+      key = String(r.date).slice(0,10); // ensure YYYY-MM-DD
     } else if(useWeekly){
-      key = r.date; // show each day in the week
+      key = String(r.date).slice(0,10); // ensure YYYY-MM-DD
     } else {
-      key = r.date.slice(0,7); // YYYY-MM
+      key = String(r.date).slice(0,7); // YYYY-MM
     }
     timeMap[key] = (timeMap[key]||0)+r.downtime;
   });
@@ -1156,6 +1156,7 @@ function renderDashboard(){
   const timeLabels = timeKeys.map(k=>{
     if(useDaily || useWeekly){
       const d = new Date(k+'T00:00:00');
+      if(isNaN(d.getTime())) return k; // fallback: show raw key if date is invalid
       return d.toLocaleDateString('th-TH',{weekday:'short',day:'numeric',month:'short'});
     }
     return monthLabel(k);
