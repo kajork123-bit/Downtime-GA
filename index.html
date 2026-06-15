@@ -311,9 +311,47 @@
   .dash-custom-range input[type="month"]{
     height:30px;
   }
+
+  /* Toast notification */
+  #toastContainer{
+    position:fixed; bottom:24px; right:24px; z-index:999;
+    display:flex; flex-direction:column; gap:8px; pointer-events:none;
+  }
+  .toast{
+    display:flex; align-items:center; gap:10px;
+    padding:12px 18px; border-radius:var(--radius); font-size:0.875rem; font-weight:600;
+    box-shadow:0 4px 20px rgba(0,0,0,0.18); pointer-events:auto;
+    animation:toastIn .25s ease; max-width:340px; border:1px solid var(--border);
+  }
+  .toast.success{background:#e8f8f0; color:#1a6640; border-color:#a3d9b8;}
+  .toast.error  {background:#fde8e8; color:#8b1a1a; border-color:#f4a0a0;}
+  .toast.info   {background:#e8f0fb; color:#1a3a6e; border-color:#a0baf4;}
+  [data-theme="dark"] .toast.success{background:#163a25; color:#7ed8a8; border-color:#2a6644;}
+  [data-theme="dark"] .toast.error  {background:#3a1616; color:#f4a0a0; border-color:#8b1a1a;}
+  [data-theme="dark"] .toast.info   {background:#16253a; color:#a0baf4; border-color:#1a3a6e;}
+  .toast-out{animation:toastOut .3s ease forwards;}
+  @keyframes toastIn {from{opacity:0;transform:translateX(30px)} to{opacity:1;transform:translateX(0)}}
+  @keyframes toastOut{from{opacity:1;transform:translateX(0)} to{opacity:0;transform:translateX(30px)}}
+
+  /* Inline field error */
+  .field-error{font-size:0.76rem; color:var(--red); margin-top:3px; display:none;}
+  input.invalid, select.invalid, textarea.invalid{
+    border-color:var(--red) !important; outline:2px solid rgba(239,93,82,0.25) !important;
+  }
+
+  /* Loading spinner on button */
+  .btn-loading{opacity:.7; pointer-events:none; cursor:not-allowed;}
+  .btn-loading::after{
+    content:''; display:inline-block; width:12px; height:12px;
+    border:2px solid rgba(255,255,255,0.4); border-top-color:#fff;
+    border-radius:50%; animation:spin .6s linear infinite; margin-left:8px;
+  }
+  @keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
+
+<div id="toastContainer"></div>
 
 <header>
   <div class="title">
@@ -488,6 +526,7 @@
         <div>
           <label>วันที่ *</label>
           <input type="date" id="f-date" required="">
+          <div class="field-error" id="err-f-date">กรุณากรอกวันที่</div>
         </div>
         <div>
           <label>กะการทำงาน *</label>
@@ -496,14 +535,17 @@
             <option value="A">กะ A </option>
             <option value="B">กะ B</option>
           </select>
+          <div class="field-error" id="err-f-shift">กรุณาเลือกกะการทำงาน</div>
         </div>
         <div>
           <label>เวลาเริ่มมีปัญหา *</label>
           <input type="time" id="f-start" required="">
+          <div class="field-error" id="err-f-start">กรุณากรอกเวลาเริ่ม</div>
         </div>
         <div>
           <label>เวลาแก้ไขเสร็จ *</label>
           <input type="time" id="f-end" required="">
+          <div class="field-error" id="err-f-end">กรุณากรอกเวลาเสร็จ</div>
         </div>
         <div>
           <label>Downtime (นาที)</label>
@@ -512,18 +554,22 @@
         <div>
           <label>เครื่องจักร *</label>
           <input type="text" id="f-machine" placeholder="เช่น Injection Machine #3" required="">
+          <div class="field-error" id="err-f-machine">กรุณากรอกชื่อเครื่องจักร</div>
         </div>
         <div>
           <label>สถานที่ / แผนก *</label>
           <input type="text" id="f-location" placeholder="เช่น Line A / โซน 2" required="">
+          <div class="field-error" id="err-f-location">กรุณากรอกสถานที่</div>
         </div>
         <div class="full">
           <label>ปัญหาที่เกิดขึ้น *</label>
           <textarea id="f-problem" placeholder="อธิบายอาการ/ปัญหาที่พบ" required=""></textarea>
+          <div class="field-error" id="err-f-problem">กรุณากรอกรายละเอียดปัญหา</div>
         </div>
         <div class="full">
           <label>วิธีแก้ไข *</label>
           <textarea id="f-solution" placeholder="ขั้นตอนการแก้ไขที่ดำเนินการ" required=""></textarea>
+          <div class="field-error" id="err-f-solution">กรุณากรอกวิธีแก้ไข</div>
         </div>
         <div class="full">
           <label>ปัญหาที่แท้จริง (Root Cause)</label>
@@ -539,7 +585,7 @@
         </div>
       </div>
       <div class="actions-row">
-        <button class="btn btn-primary" onclick="saveRecord()">💾 บันทึกข้อมูล</button>
+        <button class="btn btn-primary" id="saveBtn" onclick="saveRecord()">💾 บันทึกข้อมูล</button>
         <button class="btn btn-outline" onclick="resetForm()">↺ ล้างฟอร์ม</button>
       </div>
     </div>
@@ -642,6 +688,8 @@
 <script>
 // ===== Google Sheets Web App URL =====
 const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbwNZJwXZuGIVxKbLRR6FPvA0z_mmdJw35UKF2LXaJWVuvvE2cN5JdUNWBMQM1YqPER3Jw/exec';
+const API_SECRET = 'DT2024SECRET'; // ต้องตรงกับ SECRET ใน Apps Script
+function apiUrl(params=''){ return SHEET_API_URL + '?token=' + API_SECRET + (params ? '&'+params : ''); }
 
 let records = [];
 let deleteTargetId = null;
@@ -856,6 +904,65 @@ function setSyncStatus(state, msg){
   else { el.classList.add('syncing'); el.textContent = msg || '⏳ กำลังซิงค์...'; }
 }
 
+// ---------- Toast notification ----------
+function showToast(msg, type='success', duration=3000){
+  const c = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  const icons = {success:'✅', error:'❌', info:'ℹ️'};
+  t.className = 'toast ' + type;
+  t.textContent = (icons[type]||'') + ' ' + msg;
+  c.appendChild(t);
+  setTimeout(()=>{
+    t.classList.add('toast-out');
+    setTimeout(()=>t.remove(), 350);
+  }, duration);
+}
+
+// ---------- Inline validation ----------
+const REQUIRED_FIELDS = ['f-date','f-shift','f-start','f-end','f-machine','f-location','f-problem','f-solution'];
+const FIELD_LABELS = {
+  'f-date':'วันที่','f-shift':'กะการทำงาน','f-start':'เวลาเริ่ม',
+  'f-end':'เวลาเสร็จ','f-machine':'เครื่องจักร','f-location':'สถานที่',
+  'f-problem':'รายละเอียดปัญหา','f-solution':'วิธีแก้ไข'
+};
+function clearFieldError(id){
+  const el = document.getElementById(id);
+  const err = document.getElementById('err-'+id);
+  if(el){ el.classList.remove('invalid'); }
+  if(err){ err.style.display='none'; }
+}
+function showFieldError(id){
+  const el = document.getElementById(id);
+  const err = document.getElementById('err-'+id);
+  if(el){ el.classList.add('invalid'); el.focus(); }
+  if(err){ err.style.display='block'; }
+}
+function validateForm(){
+  let firstError = null;
+  let valid = true;
+  REQUIRED_FIELDS.forEach(id=>{
+    clearFieldError(id);
+    const el = document.getElementById(id);
+    if(!el || !el.value.trim()){
+      showFieldError(id);
+      if(!firstError) firstError = id;
+      valid = false;
+    }
+  });
+  if(!valid){
+    const el = document.getElementById(firstError);
+    if(el) el.focus();
+    showToast('กรุณากรอกข้อมูลให้ครบในช่องที่มี *', 'error');
+  }
+  return valid;
+}
+// Clear errors on input
+REQUIRED_FIELDS.forEach(id=>{
+  const el = document.getElementById(id);
+  if(el) el.addEventListener('input', ()=>clearFieldError(id));
+  if(el) el.addEventListener('change', ()=>clearFieldError(id));
+});
+
 // ---------- sanitize record — แปลงทุก field ให้เป็น string/number ที่ถูกต้อง ----------
 function sanitizeRecord(r){
   function getField(source, keys){
@@ -1016,44 +1123,22 @@ try {
 async function loadFromSheet(){
   setSyncStatus('syncing', '⏳ กำลังโหลดข้อมูล...');
   try{
-    const res = await fetch(SHEET_API_URL, {
-      redirect: 'follow',
-      cache: 'no-cache'
-    });
+    const res = await fetch(apiUrl(), { redirect: 'follow', cache: 'no-cache' });
     const json = await res.json();
+    if(json.status === 'error' && json.error === 'Unauthorized'){
+      setSyncStatus('error', '⛔ Token ไม่ถูกต้อง — ตรวจสอบ API_SECRET');
+      showToast('⛔ API Token ไม่ถูกต้อง', 'error');
+      return;
+    }
     if(json.status === 'ok' && Array.isArray(json.records)){
-      // DEBUG: แสดงข้อมูล raw ตัวแรกใน console เพื่อตรวจสอบรูปแบบ
-      if(json.records.length > 0){
-        console.log('=== RAW record[0] from Sheet ===');
-        console.log(JSON.stringify(json.records[0], null, 2));
-      }
-      records = json.records.map((r, idx) => {
-        // Map by insertion order (Object.values) to match Sheet column positions
+      records = json.records.map(r => {
         const vals = Array.isArray(r) ? r.slice() : Object.values(r || {});
-        // vals indices: 0=id,1=date,2=shift,3=problem,4=start,5=end,6=downtime,7=machine,8=location,9=solution,10=rootcause,11=parts,12=note
-        const fixed = {
-          id:        vals[0] || '',
-          date:      vals[1] || '',
-          shift:     vals[2] || '',
-          problem:   vals[3] || '',
-          start:     vals[4] || '',
-          end:       vals[5] || '',
-          downtime:  vals[6] || 0,
-          machine:   vals[7] || '',
-          location:  vals[8] || '',
-          solution:  vals[9] || '',
-          rootcause: vals[10] || '',
-          parts:     vals[11] || '',
-          note:      vals[12] || ''
-        };
-        const sanitized = sanitizeRecord(fixed);
-        if(idx === 0){
-          console.log('=== Raw from Apps Script object ===', r);
-          console.log('=== Values array ===', vals);
-          console.log('=== Fixed mapping ===', fixed);
-          console.log('=== Sanitized ===', sanitized);
-        }
-        return sanitized;
+        return sanitizeRecord({
+          id: vals[0]||'', date: vals[1]||'', shift: vals[2]||'',
+          problem: vals[3]||'', start: vals[4]||'', end: vals[5]||'',
+          downtime: vals[6]||0, machine: vals[7]||'', location: vals[8]||'',
+          solution: vals[9]||'', rootcause: vals[10]||'', parts: vals[11]||'', note: vals[12]||''
+        });
       });
       localStorage.setItem('downtimeRecords', JSON.stringify(records));
       setSyncStatus('ok', '✅ เชื่อมต่อ Google Sheets ('+records.length+' รายการ)');
@@ -1083,18 +1168,17 @@ async function clearAndReload(){
 async function pushToSheet(record){
   setSyncStatus('syncing', '⏳ กำลังบันทึกไปยัง Sheet...');
   try{
-    const payload = { action:'save', record: record };
-    console.log('=== pushToSheet payload ===', JSON.stringify(payload, null, 2));
-    await fetch(SHEET_API_URL, {
-      method: 'POST',
-      redirect: 'follow',
+    await fetch(apiUrl(), {
+      method: 'POST', redirect: 'follow',
       headers: {'Content-Type':'text/plain;charset=utf-8'},
-      body: JSON.stringify(payload)
+      body: JSON.stringify({ action:'save', record: record, token: API_SECRET })
     });
     setSyncStatus('ok', '✅ บันทึกไปยัง Google Sheets แล้ว');
+    showToast('บันทึกข้อมูลสำเร็จ ✔', 'success');
   } catch(err){
     console.error('pushToSheet error:', err);
     setSyncStatus('error', '⚠️ บันทึกไป Sheet ไม่ได้ (บันทึกในเครื่องไว้ก่อน)');
+    showToast('บันทึกลง Sheet ไม่ได้ — ข้อมูลยังอยู่ในเครื่อง', 'error');
   }
 }
 
@@ -1102,29 +1186,27 @@ async function pushToSheet(record){
 async function deleteFromSheet(id){
   setSyncStatus('syncing', '⏳ กำลังลบจาก Sheet...');
   try{
-    await fetch(SHEET_API_URL, {
-      method: 'POST',
-      redirect: 'follow',
+    await fetch(apiUrl(), {
+      method: 'POST', redirect: 'follow',
       headers: {'Content-Type':'text/plain;charset=utf-8'},
-      body: JSON.stringify({ action:'delete', id: id })
+      body: JSON.stringify({ action:'delete', id: id, token: API_SECRET })
     });
     setSyncStatus('ok', '✅ ลบจาก Google Sheets แล้ว');
+    showToast('ลบข้อมูลสำเร็จ', 'info');
   } catch(err){
     console.error('deleteFromSheet error:', err);
     setSyncStatus('error', '⚠️ ลบจาก Sheet ไม่ได้ (ลบในเครื่องไว้ก่อน)');
+    showToast('ลบจาก Sheet ไม่ได้', 'error');
   }
 }
 
 // ---------- Save / Edit ----------
-function saveRecord(){
-  const req = ['f-date','f-shift','f-start','f-end','f-machine','f-location','f-problem','f-solution'];
-  for(const id of req){
-    if(!document.getElementById(id).value.trim()){
-      alert('กรุณากรอกข้อมูลให้ครบในช่องที่มี * (จำเป็น)');
-      document.getElementById(id).focus();
-      return;
-    }
-  }
+async function saveRecord(){
+  if(!validateForm()) return;
+  const btn = document.getElementById('saveBtn');
+  const isEdit = !!document.getElementById('edit-id').value;
+  btn.classList.add('btn-loading');
+  btn.textContent = isEdit ? '⏳ กำลังบันทึก...' : '⏳ กำลังบันทึก...';
   const editId = document.getElementById('edit-id').value;
   const record = {
     id: editId || Date.now().toString(),
@@ -1148,14 +1230,12 @@ function saveRecord(){
     records.push(record);
   }
   persist();
+  renderTable(); renderDashboard(); renderAnalysis();
+  await pushToSheet(record);
+  btn.classList.remove('btn-loading');
+  btn.textContent = '💾 บันทึกข้อมูล';
   resetForm();
-  // switch to history tab
   document.querySelector('.tab-btn[data-tab="history"]').click();
-  // sync to Google Sheets (fire and forget; don't reload to avoid re-parsing field mapping issues)
-  pushToSheet(record);
-  renderTable();
-  renderDashboard();
-  renderAnalysis();
 }
 
 function persist(){
@@ -1166,7 +1246,10 @@ function resetForm(){
   document.getElementById('edit-id').value = '';
   document.getElementById('form-title').textContent = '📝 บันทึกปัญหาใหม่';
   ['f-date','f-shift','f-start','f-end','f-downtime','f-machine','f-location','f-problem','f-solution','f-rootcause','f-parts','f-note']
-    .forEach(id=>document.getElementById(id).value='');
+    .forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  REQUIRED_FIELDS.forEach(id=>clearFieldError(id));
+  const btn = document.getElementById('saveBtn');
+  if(btn){ btn.classList.remove('btn-loading'); btn.textContent='💾 บันทึกข้อมูล'; }
 }
 
 function editRecord(id){
@@ -1187,6 +1270,27 @@ function editRecord(id){
   document.getElementById('f-note').value = r.note;
   document.getElementById('form-title').textContent = '✏️ แก้ไขข้อมูลปัญหา (ลำดับเดิม)';
   document.querySelector('.tab-btn[data-tab="entry"]').click();
+}
+
+function duplicateRecord(id){
+  const r = records.find(x=>String(x.id)===String(id));
+  if(!r) return;
+  document.getElementById('edit-id').value = '';
+  document.getElementById('f-date').value = r.date;
+  document.getElementById('f-shift').value = r.shift || '';
+  document.getElementById('f-start').value = formatTime(r.start);
+  document.getElementById('f-end').value = formatTime(r.end);
+  document.getElementById('f-downtime').value = r.downtime;
+  document.getElementById('f-machine').value = r.machine;
+  document.getElementById('f-location').value = r.location;
+  document.getElementById('f-problem').value = r.problem;
+  document.getElementById('f-solution').value = r.solution;
+  document.getElementById('f-rootcause').value = r.rootcause;
+  document.getElementById('f-parts').value = r.parts;
+  document.getElementById('f-note').value = r.note;
+  document.getElementById('form-title').textContent = '📋 คัดลอกข้อมูล (จะบันทึกเป็นรายการใหม่)';
+  document.querySelector('.tab-btn[data-tab="entry"]').click();
+  showToast('คัดลอกข้อมูลแล้ว — แก้ไขและกด บันทึก เพื่อสร้างรายการใหม่', 'info', 4000);
 }
 
 function deleteRecord(id){
@@ -1274,6 +1378,7 @@ function renderTable(keepPage){
       <td class="cell-clamp" title="${esc(r.note)}">${esc(r.note)}</td>
       <td class="col-action">
         <button class="icon-btn" title="แก้ไข" onclick="editRecord('${r.id}')">✏️</button>
+        <button class="icon-btn" title="คัดลอก" onclick="duplicateRecord('${r.id}')">📋</button>
         <button class="icon-btn" title="ลบ" onclick="deleteRecord('${r.id}')">🗑️</button>
       </td>
     </tr>
