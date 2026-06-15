@@ -858,6 +858,39 @@ function setSyncStatus(state, msg){
 
 // ---------- sanitize record — แปลงทุก field ให้เป็น string/number ที่ถูกต้อง ----------
 function sanitizeRecord(r){
+  function getField(source, keys){
+    if(!source || typeof source !== 'object') return undefined;
+    for(const key of keys){
+      if(Object.prototype.hasOwnProperty.call(source, key) && source[key] !== undefined) return source[key];
+    }
+    return undefined;
+  }
+
+  function columnIndex(key){
+    let idx = 0;
+    for(const ch of String(key).toUpperCase()){
+      if(ch >= 'A' && ch <= 'Z') idx = idx * 26 + (ch.charCodeAt(0) - 64);
+    }
+    return idx - 1;
+  }
+
+  function getOrderedValues(source){
+    if(Array.isArray(source)) return source.slice();
+    if(!source || typeof source !== 'object') return [];
+    const keys = Object.keys(source);
+    const numeric = keys.filter(k => /^\d+$/.test(k)).sort((a,b)=>Number(a)-Number(b));
+    if(numeric.length > 0) return numeric.map(k => source[k]);
+    const letters = keys.filter(k => /^[A-Z]+$/i.test(k)).sort((a,b)=>columnIndex(a)-columnIndex(b));
+    if(letters.length > 0) return letters.map(k => source[k]);
+    return [];
+  }
+
+  function getFieldOrIndex(source, keys, index){
+    const fieldValue = getField(source, keys);
+    if(fieldValue !== undefined) return fieldValue;
+    const ordered = getOrderedValues(source);
+    return ordered[index];
+  }
 
   // แปลงวันที่ → YYYY-MM-DD
   function toDate(v){
@@ -904,10 +937,14 @@ function sanitizeRecord(r){
     // HH:MM หรือ HH:MM:SS อยู่แล้ว
     const plain = s.match(/^(\d{1,2}):(\d{2})/);
     if(plain) return plain[1].padStart(2,'0') + ':' + plain[2];
-    // ISO datetime string
+    // ISO datetime string — format in Bangkok timezone to correct 1899-12-30 epoch times
     const dt = new Date(s);
     if(!isNaN(dt.getTime())){
-      return dt.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+      try{
+        return dt.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',timeZone:'Asia/Bangkok'});
+      } catch(e){
+        return dt.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+      }
     }
     return '';
   }
@@ -918,29 +955,47 @@ function sanitizeRecord(r){
   }
 
   // downtime: ตัวเลขบวก (นาที) เท่านั้น
-  let dt = r.downtime;
+  let dt = getFieldOrIndex(r, ['downtime','Downtime (นาที)','Downtime','Duration','machine'], 6);
   if(typeof dt === 'number'){
-    // Sheets fraction of day (0 < x < 1) → แปลงเป็นนาที
     dt = (dt > 0 && dt < 1) ? Math.round(dt * 1440) : Math.max(0, Math.round(dt));
   } else {
-    dt = Math.max(0, parseInt(String(dt||'0'), 10) || 0);
+    const parsed = Number(dt);
+    if(!isNaN(parsed)){
+      dt = (parsed > 0 && parsed < 1) ? Math.round(parsed * 1440) : Math.max(0, Math.round(parsed));
+    } else {
+      dt = Math.max(0, parseInt(String(dt||'0'), 10) || 0);
+    }
   }
 
-  return {
-    id:        toStr(r.id),
-    date:      toDate(r.date),
-    shift:     toStr(r.shift).trim().toUpperCase(),
-    start:     toTime(r.start),
-    end:       toTime(r.end),
-    downtime:  dt,
-    machine:   toStr(r.machine),
-    location:  toStr(r.location),
-    problem:   toStr(r.problem),
-    solution:  toStr(r.solution),
-    rootcause: toStr(r.rootcause),
-    parts:     toStr(r.parts),
-    note:      toStr(r.note)
+  const record = {
+    id:        toStr(getFieldOrIndex(r, ['id','ID'], 0)),                    // row[0]
+    date:      toDate(getFieldOrIndex(r, ['date','วันที่','Date'], 1)),       // row[1]
+    shift:     toStr(getFieldOrIndex(r, ['shift','กะ','Shift'], 2)).trim().toUpperCase(), // row[2]
+    problem:   toStr(getFieldOrIndex(r, ['problem','ปัญหา','start'], 3)),    // row[3] - Apps Script sends problem under "start"
+    start:     toTime(getFieldOrIndex(r, ['start','เวลาเริ่ม','end'], 4)),   // row[4] - Apps Script sends start under "end"
+    end:       toTime(getFieldOrIndex(r, ['end','เวลาเสร็จ','downtime'], 5)), // row[5]
+    downtime:  dt,                                                             // row[6]
+    machine:   toStr(getFieldOrIndex(r, ['machine','เครื่อง','location'], 7)), // row[7] - Apps Script sends machine under "location"
+    location:  toStr(getFieldOrIndex(r, ['location','สถานที่','problem'], 8)), // row[8] - Apps Script sends location under "problem"
+    solution:  toStr(getFieldOrIndex(r, ['solution','วิธีแก้ไข'], 9)),        // row[9]
+    rootcause: toStr(getFieldOrIndex(r, ['rootcause','ปัญหาที่แท้จริง'], 10)), // row[10]
+    parts:     toStr(getFieldOrIndex(r, ['parts','อะไหล่ที่เสีย'], 11)),      // row[11]
+    note:      toStr(getFieldOrIndex(r, ['note','หมายเหตุ',''], 12))         // row[12]
   };
+  // If end time is missing or shows 00:00, but we have start + downtime, compute end = start + downtime
+  const isZeroEnd = !record.end || record.end === '00:00' || record.end === '0:00';
+  if(isZeroEnd && record.start && Number(record.downtime) > 0){
+    const m = String(record.start).match(/(\d{1,2}):(\d{2})/);
+    if(m){
+      let hh = Number(m[1]), mm = Number(m[2]);
+      let total = hh*60 + mm + Number(record.downtime);
+      total = total % (24*60);
+      const nh = Math.floor(total/60);
+      const nm = total % 60;
+      record.end = String(nh).padStart(2,'0') + ':' + String(nm).padStart(2,'0');
+    }
+  }
+  return record;
 }
 
 // Load cached records from localStorage and normalize fields
@@ -963,7 +1018,34 @@ async function loadFromSheet(){
         console.log('=== RAW record[0] from Sheet ===');
         console.log(JSON.stringify(json.records[0], null, 2));
       }
-      records = json.records.map(r => sanitizeRecord(r));
+      records = json.records.map((r, idx) => {
+        // Map by insertion order (Object.values) to match Sheet column positions
+        const vals = Array.isArray(r) ? r.slice() : Object.values(r || {});
+        // vals indices: 0=id,1=date,2=shift,3=problem,4=start,5=end,6=downtime,7=machine,8=location,9=solution,10=rootcause,11=parts,12=note
+        const fixed = {
+          id:        vals[0] || '',
+          date:      vals[1] || '',
+          shift:     vals[2] || '',
+          problem:   vals[3] || '',
+          start:     vals[4] || '',
+          end:       vals[5] || '',
+          downtime:  vals[6] || 0,
+          machine:   vals[7] || '',
+          location:  vals[8] || '',
+          solution:  vals[9] || '',
+          rootcause: vals[10] || '',
+          parts:     vals[11] || '',
+          note:      vals[12] || ''
+        };
+        const sanitized = sanitizeRecord(fixed);
+        if(idx === 0){
+          console.log('=== Raw from Apps Script object ===', r);
+          console.log('=== Values array ===', vals);
+          console.log('=== Fixed mapping ===', fixed);
+          console.log('=== Sanitized ===', sanitized);
+        }
+        return sanitized;
+      });
       localStorage.setItem('downtimeRecords', JSON.stringify(records));
       setSyncStatus('ok', '✅ เชื่อมต่อ Google Sheets ('+records.length+' รายการ)');
     } else {
@@ -1216,24 +1298,28 @@ function renderTable(keepPage){
 }
 
 function formatTime(v){
-  if(!v) return '';
-  // Google Sheets often returns time-only cells as ISO datetime on the
-  // epoch date 1899-12-30 (e.g. "1899-12-30T07:57:56.000Z"), serialized in UTC.
-  // Convert back to Bangkok local time (UTC+7).
-  const m = String(v).match(/^1899-12-(\d{2})T(\d{2}):(\d{2})/);
-  if(m){
-    let day = Number(m[1]), h = Number(m[2]), min = Number(m[3]);
-    h += 7;
-    if(h >= 24){ h -= 24; }
-    return String(h).padStart(2,'0')+':'+String(min).padStart(2,'0');
+  if(v === null || v === undefined || v === '') return '';
+  // If it's a Date object, format using Bangkok timezone
+  if(Object.prototype.toString.call(v) === '[object Date]'){
+    if(isNaN(v.getTime())) return '';
+    try{ return v.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',timeZone:'Asia/Bangkok'}); }
+    catch(e){ return v.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}); }
   }
-  // Already a plain HH:MM(:SS) string
-  const m2 = String(v).match(/^(\d{2}):(\d{2})/);
-  if(m2) return m2[1]+':'+m2[2];
-  // Full ISO datetime from another date -> just take the time part
-  const m3 = String(v).match(/T(\d{2}):(\d{2})/);
-  if(m3) return m3[1]+':'+m3[2];
-  return v;
+  const s = String(v).trim();
+  if(!s) return '';
+  // Try to parse full ISO datetime and format in Bangkok timezone
+  const isoFull = s.match(/^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:?\d*Z)$/);
+  if(isoFull){
+    const dt = new Date(isoFull[1]);
+    if(!isNaN(dt.getTime())){
+      try{ return dt.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',timeZone:'Asia/Bangkok'}); }
+      catch(e){ return dt.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}); }
+    }
+  }
+  // Otherwise pick first HH:MM occurrence
+  const any = s.match(/(\d{1,2}):(\d{2})/);
+  if(any) return any[1].padStart(2,'0')+':'+any[2];
+  return s;
 }
 
 function esc(s){
