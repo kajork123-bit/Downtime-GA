@@ -643,8 +643,7 @@
 // ===== Google Sheets Web App URL =====
 const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbx1pECIEwCJxIr0DGkJ-bc3cALdZSg-u0h2lR_fGLxqPU8tLnZwovUUkc5jR6cOcfXL/exec';
 
-let records = JSON.parse(localStorage.getItem('downtimeRecords') || '[]')
-  .map(r => ({ ...r, downtime: Math.max(0, Number(r.downtime) || 0) }));
+let records = [];
 let deleteTargetId = null;
 let charts = {};
 let dashRange = 'month';   // current dashboard date-range filter
@@ -862,8 +861,8 @@ function sanitizeRecord(r){
 
   // แปลงวันที่ → YYYY-MM-DD
   function toDate(v){
-    if(!v) return '';
-    const s = String(v);
+    if(v === null || v === undefined || v === '') return '';
+    const s = String(v).trim();
     // รูปแบบ YYYY-MM-DD อยู่แล้ว
     if(/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
     // ISO string เช่น "2024-06-15T00:00:00.000Z"
@@ -872,25 +871,43 @@ function sanitizeRecord(r){
     // DD/MM/YYYY (ไทย)
     const m2 = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
     if(m2) return `${m2[3]}-${m2[2].padStart(2,'0')}-${m2[1].padStart(2,'0')}`;
+    // Numeric serial date from Sheets/Excel
+    const num = Number(s);
+    if(!isNaN(num)){
+      const epoch = new Date(Date.UTC(1899, 11, 30));
+      const dt = new Date(epoch.getTime() + Math.round(num * 86400000));
+      if(!isNaN(dt.getTime())){
+        return dt.toISOString().slice(0,10);
+      }
+    }
     return s;
   }
 
-  // แปลงเวลา → HH:MM (Bangkok UTC+7)
+  // แปลงเวลา → HH:MM
   function toTime(v){
-    if(!v) return '';
-    const s = String(v);
+    if(v === null || v === undefined || v === '') return '';
+    if(typeof v === 'number'){
+      if(isNaN(v)) return '';
+      const minutes = Math.round(v * 1440);
+      const h = Math.floor(minutes / 60) % 24;
+      const m = minutes % 60;
+      return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
+    }
+    const s = String(v).trim();
+    const numeric = Number(s);
+    if(s !== '' && !isNaN(numeric) && /^[0-9]+(\.[0-9]+)?$/.test(s)){
+      const minutes = Math.round(numeric * 1440);
+      const h = Math.floor(minutes / 60) % 24;
+      const m = minutes % 60;
+      return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
+    }
     // HH:MM หรือ HH:MM:SS อยู่แล้ว
     const plain = s.match(/^(\d{1,2}):(\d{2})/);
     if(plain) return plain[1].padStart(2,'0') + ':' + plain[2];
-    // ISO epoch 1899-12-30 = time-only จาก Sheets
-    // เช่น "1899-12-30T07:00:00.000Z" → UTC 07:00 → BKK 14:00
-    // หรือ "1899-12-29T17:00:00.000Z" → UTC 17:00 → BKK 00:00
-    const iso = s.match(/T(\d{2}):(\d{2})/);
-    if(iso){
-      let h = parseInt(iso[1], 10) + 7;  // +7 Bangkok
-      const m = parseInt(iso[2], 10);
-      if(h >= 24) h -= 24;
-      return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
+    // ISO datetime string
+    const dt = new Date(s);
+    if(!isNaN(dt.getTime())){
+      return dt.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
     }
     return '';
   }
@@ -912,7 +929,7 @@ function sanitizeRecord(r){
   return {
     id:        toStr(r.id),
     date:      toDate(r.date),
-    shift:     toStr(r.shift),
+    shift:     toStr(r.shift).trim().toUpperCase(),
     start:     toTime(r.start),
     end:       toTime(r.end),
     downtime:  dt,
@@ -924,6 +941,14 @@ function sanitizeRecord(r){
     parts:     toStr(r.parts),
     note:      toStr(r.note)
   };
+}
+
+// Load cached records from localStorage and normalize fields
+try {
+  records = JSON.parse(localStorage.getItem('downtimeRecords') || '[]').map(r => sanitizeRecord(r));
+} catch(err){
+  console.warn('Invalid localStorage downtimeRecords, resetting to empty.');
+  records = [];
 }
 
 // ---------- Load data from Google Sheet ----------
@@ -1243,10 +1268,19 @@ function renderDashboard(){
 
   const total = dash.length;
   const totalDowntime = dash.reduce((s,r)=>s+r.downtime,0);
+  const shiftA = dash.filter(r => String(r.shift || '').toUpperCase() === 'A');
+  const shiftB = dash.filter(r => String(r.shift || '').toUpperCase() === 'B');
+  const totalA = shiftA.reduce((s,r)=>s+r.downtime,0);
+  const totalB = shiftB.reduce((s,r)=>s+r.downtime,0);
+
   document.getElementById('kpi-total').textContent = total;
   document.getElementById('kpi-downtime').textContent = totalDowntime.toLocaleString();
   document.getElementById('kpi-downtime-hr').textContent = (totalDowntime/60).toFixed(1)+' ชั่วโมง';
   document.getElementById('kpi-avg').textContent = total ? Math.round(totalDowntime/total) : 0;
+  document.getElementById('kpi-shift-a').textContent = totalA.toLocaleString();
+  document.getElementById('kpi-shift-a-count').textContent = `${shiftA.length} ครั้ง`;
+  document.getElementById('kpi-shift-b').textContent = totalB.toLocaleString();
+  document.getElementById('kpi-shift-b-count').textContent = `${shiftB.length} ครั้ง`;
 
   // top machine
   const machineMap = {};
