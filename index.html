@@ -641,7 +641,7 @@
 
 <script>
 // ===== Google Sheets Web App URL =====
-const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbxgZj-afZeXHM6RFM5Fi_Hwne4X67PyrByRo9wbwVRMGYZKlZaHMeKEI1UZLVLGMG-uLQ/exec';
+const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbwNZJwXZuGIVxKbLRR6FPvA0z_mmdJw35UKF2LXaJWVuvvE2cN5JdUNWBMQM1YqPER3Jw/exec';
 
 let records = [];
 let deleteTargetId = null;
@@ -898,7 +898,13 @@ function sanitizeRecord(r){
     const s = String(v).trim();
     // รูปแบบ YYYY-MM-DD อยู่แล้ว
     if(/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
-    // ISO string เช่น "2024-06-15T00:00:00.000Z"
+    // ISO string เช่น "2024-06-15T17:00:00.000Z" — แปลงตาม timezone ไทย (UTC+7)
+    if(s.includes("T") || s.endsWith("Z")){
+      const dtISO = new Date(s);
+      if(!isNaN(dtISO.getTime())){
+        return dtISO.toLocaleDateString("en-CA", { timeZone: "Asia/Bangkok" });
+      }
+    }
     const m = s.match(/^(\d{4}-\d{2}-\d{2})/);
     if(m) return m[1];
     // DD/MM/YYYY (ไทย)
@@ -1010,7 +1016,10 @@ try {
 async function loadFromSheet(){
   setSyncStatus('syncing', '⏳ กำลังโหลดข้อมูล...');
   try{
-    const res = await fetch(SHEET_API_URL);
+    const res = await fetch(SHEET_API_URL, {
+      redirect: 'follow',
+      cache: 'no-cache'
+    });
     const json = await res.json();
     if(json.status === 'ok' && Array.isArray(json.records)){
       // DEBUG: แสดงข้อมูล raw ตัวแรกใน console เพื่อตรวจสอบรูปแบบ
@@ -1078,6 +1087,7 @@ async function pushToSheet(record){
     console.log('=== pushToSheet payload ===', JSON.stringify(payload, null, 2));
     await fetch(SHEET_API_URL, {
       method: 'POST',
+      redirect: 'follow',
       headers: {'Content-Type':'text/plain;charset=utf-8'},
       body: JSON.stringify(payload)
     });
@@ -1094,6 +1104,7 @@ async function deleteFromSheet(id){
   try{
     await fetch(SHEET_API_URL, {
       method: 'POST',
+      redirect: 'follow',
       headers: {'Content-Type':'text/plain;charset=utf-8'},
       body: JSON.stringify({ action:'delete', id: id })
     });
