@@ -365,6 +365,16 @@
         <div class="kpi-value" id="kpi-topmachine" style="font-size:1.2rem;">Brake test</div>
         <div class="kpi-sub" id="kpi-topmachine-count">1 ครั้ง</div>
       </div>
+      <div class="kpi-card" style="border-left:4px solid #2e7d32;">
+        <div class="kpi-label">Downtime กะ A </div>
+        <div class="kpi-value" id="kpi-shift-a" style="color:#2e7d32;">0</div>
+        <div class="kpi-sub" id="kpi-shift-a-count">0 ครั้ง</div>
+      </div>
+      <div class="kpi-card" style="border-left:4px solid #e65100;">
+        <div class="kpi-label">Downtime กะ B</div>
+        <div class="kpi-value" id="kpi-shift-b" style="color:#e65100;">0</div>
+        <div class="kpi-sub" id="kpi-shift-b-count">0 ครั้ง</div>
+      </div>
     </div>
 
     <div class="charts-grid">
@@ -427,8 +437,14 @@
         <div class="search">
           <input type="text" id="searchBox" placeholder="🔍 ค้นหา (เครื่อง, ปัญหา, สถานที่...)" oninput="renderTable()">
         </div>
-        <div style="display:flex; gap:8px;">
+        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+          <select id="shiftFilter" onchange="renderTable()" style="padding:6px 12px; border-radius:8px; border:1px solid var(--border); background:var(--card); color:var(--text); font-size:0.85rem; font-weight:600;">
+            <option value="">🔄 ทุกกะ</option>
+            <option value="A">กะ A </option>
+            <option value="B">กะ B</option>
+          </select>
           <button class="btn btn-outline btn-sm" onclick="loadFromSheet()">🔄 รีเฟรชจาก Sheet</button>
+          <button class="btn btn-outline btn-sm" onclick="clearAndReload()" style="color:#e53935;border-color:#e53935;">🗑️ ล้างแคช</button>
           <button class="btn btn-green btn-sm" onclick="openExportModal(&#39;excel&#39;)">📊 Export Excel</button>
           <button class="btn btn-red btn-sm" onclick="openExportModal(&#39;pdf&#39;)">📄 Export PDF</button>
         </div>
@@ -437,7 +453,7 @@
         <table id="dataTable">
           <thead>
             <tr>
-              <th>ลำดับ</th><th>วันที่</th><th>ปัญหา</th><th>เวลาเริ่ม</th><th>เวลาเสร็จ</th>
+              <th>ลำดับ</th><th>วันที่</th><th>กะ</th><th>ปัญหา</th><th>เวลาเริ่ม</th><th>เวลาเสร็จ</th>
               <th>Downtime (นาที)</th><th>เครื่อง</th><th>สถานที่</th><th>วิธีแก้ไข</th>
               <th>ปัญหาที่แท้จริง</th><th>อะไหล่ที่เสีย</th><th>หมายเหตุ</th><th>จัดการ</th>
             </tr>
@@ -472,6 +488,14 @@
         <div>
           <label>วันที่ *</label>
           <input type="date" id="f-date" required="">
+        </div>
+        <div>
+          <label>กะการทำงาน *</label>
+          <select id="f-shift" required="" style="width:100%; padding:9px 12px; border-radius:var(--radius-sm); border:1px solid var(--border); background:var(--card); color:var(--text); font-size:0.92rem;">
+            <option value="">-- เลือกกะ --</option>
+            <option value="A">กะ A </option>
+            <option value="B">กะ B</option>
+          </select>
         </div>
         <div>
           <label>เวลาเริ่มมีปัญหา *</label>
@@ -617,9 +641,10 @@
 
 <script>
 // ===== Google Sheets Web App URL =====
-const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbxucvmzAmBOr0Sa44mwP0lDVRTKhmvfmMb7S_SJQ7srbuTYJjUcHmtDK0Wt_e7G327n/exec';
+const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbx1pECIEwCJxIr0DGkJ-bc3cALdZSg-u0h2lR_fGLxqPU8tLnZwovUUkc5jR6cOcfXL/exec';
 
-let records = JSON.parse(localStorage.getItem('downtimeRecords') || '[]');
+let records = JSON.parse(localStorage.getItem('downtimeRecords') || '[]')
+  .map(r => ({ ...r, downtime: Math.max(0, Number(r.downtime) || 0) }));
 let deleteTargetId = null;
 let charts = {};
 let dashRange = 'month';   // current dashboard date-range filter
@@ -832,6 +857,48 @@ function setSyncStatus(state, msg){
   else { el.classList.add('syncing'); el.textContent = msg || '⏳ กำลังซิงค์...'; }
 }
 
+// ---------- sanitize record — แปลงทุก field ให้เป็น string/number ที่ถูกต้อง ----------
+function sanitizeRecord(r){
+  function toStr(v){
+    if(v === null || v === undefined) return '';
+    if(typeof v === 'object' && v instanceof Date) return v.toISOString().slice(0,10);
+    return String(v);
+  }
+  function toTime(v){
+    if(!v) return '';
+    if(typeof v === 'object' && v instanceof Date){
+      let h = v.getUTCHours() + 7;
+      let m = v.getUTCMinutes();
+      if(h >= 24) h -= 24;
+      return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
+    }
+    const m2 = String(v).match(/(\d{1,2}):(\d{2})/);
+    if(m2) return m2[1].padStart(2,'0') + ':' + m2[2];
+    return '';
+  }
+  let dt = r.downtime;
+  if(typeof dt === 'number'){
+    dt = (dt > 0 && dt < 1) ? Math.round(dt * 1440) : Math.max(0, Math.round(dt));
+  } else {
+    dt = Math.max(0, parseInt(String(dt||'0'), 10) || 0);
+  }
+  return {
+    id:        toStr(r.id),
+    date:      toStr(r.date),
+    shift:     toStr(r.shift),
+    start:     toTime(r.start),
+    end:       toTime(r.end),
+    downtime:  dt,
+    machine:   toStr(r.machine),
+    location:  toStr(r.location),
+    problem:   toStr(r.problem),
+    solution:  toStr(r.solution),
+    rootcause: toStr(r.rootcause),
+    parts:     toStr(r.parts),
+    note:      toStr(r.note)
+  };
+}
+
 // ---------- Load data from Google Sheet ----------
 async function loadFromSheet(){
   setSyncStatus('syncing', '⏳ กำลังโหลดข้อมูล...');
@@ -839,7 +906,7 @@ async function loadFromSheet(){
     const res = await fetch(SHEET_API_URL);
     const json = await res.json();
     if(json.status === 'ok' && Array.isArray(json.records)){
-      records = json.records.map(r => ({ ...r, downtime: Number(r.downtime) || 0 }));
+      records = json.records.map(r => sanitizeRecord(r));
       localStorage.setItem('downtimeRecords', JSON.stringify(records));
       setSyncStatus('ok');
     } else {
@@ -848,11 +915,20 @@ async function loadFromSheet(){
   } catch(err){
     console.error('loadFromSheet error:', err);
     setSyncStatus('error', '⚠️ โหลดจาก Sheet ไม่ได้ (ใช้ข้อมูลในเครื่อง)');
-    // fall back to whatever is cached in localStorage (already loaded into `records`)
+    records = records.map(r => sanitizeRecord(r));
   }
   renderTable();
   renderDashboard();
   renderAnalysis();
+}
+
+// ---------- ล้าง localStorage แล้วโหลดใหม่จาก Sheet ----------
+async function clearAndReload(){
+  if(!confirm('ล้างข้อมูลในเครื่องทั้งหมดแล้วโหลดใหม่จาก Google Sheet?\n(ข้อมูลใน Sheet จะยังคงอยู่)')) return;
+  localStorage.removeItem('downtimeRecords');
+  records = [];
+  renderTable(); renderDashboard(); renderAnalysis();
+  await loadFromSheet();
 }
 
 // ---------- Push a single record to Google Sheet ----------
@@ -889,7 +965,7 @@ async function deleteFromSheet(id){
 
 // ---------- Save / Edit ----------
 function saveRecord(){
-  const req = ['f-date','f-start','f-end','f-machine','f-location','f-problem','f-solution'];
+  const req = ['f-date','f-shift','f-start','f-end','f-machine','f-location','f-problem','f-solution'];
   for(const id of req){
     if(!document.getElementById(id).value.trim()){
       alert('กรุณากรอกข้อมูลให้ครบในช่องที่มี * (จำเป็น)');
@@ -901,6 +977,7 @@ function saveRecord(){
   const record = {
     id: editId || Date.now().toString(),
     date: document.getElementById('f-date').value,
+    shift: document.getElementById('f-shift').value,
     start: document.getElementById('f-start').value,
     end: document.getElementById('f-end').value,
     downtime: Number(document.getElementById('f-downtime').value) || 0,
@@ -933,7 +1010,7 @@ function persist(){
 function resetForm(){
   document.getElementById('edit-id').value = '';
   document.getElementById('form-title').textContent = '📝 บันทึกปัญหาใหม่';
-  ['f-date','f-start','f-end','f-downtime','f-machine','f-location','f-problem','f-solution','f-rootcause','f-parts','f-note']
+  ['f-date','f-shift','f-start','f-end','f-downtime','f-machine','f-location','f-problem','f-solution','f-rootcause','f-parts','f-note']
     .forEach(id=>document.getElementById(id).value='');
 }
 
@@ -942,6 +1019,7 @@ function editRecord(id){
   if(!r) return;
   document.getElementById('edit-id').value = r.id;
   document.getElementById('f-date').value = r.date;
+  document.getElementById('f-shift').value = r.shift || '';
   document.getElementById('f-start').value = formatTime(r.start);
   document.getElementById('f-end').value = formatTime(r.end);
   document.getElementById('f-downtime').value = r.downtime;
@@ -1001,16 +1079,18 @@ function renderTable(keepPage){
   if(!keepPage) currentPage = 1;
   const tbody = document.getElementById('tableBody');
   const q = document.getElementById('searchBox').value.toLowerCase();
+  const shiftF = document.getElementById('shiftFilter')?.value || '';
   const sorted = [...records].sort((a,b)=> (b.date+b.start).localeCompare(a.date+a.start));
   const rangeFiltered = filterByRange(sorted, histRange);
   filteredCache = rangeFiltered.filter(r=>{
+    if(shiftF && (r.shift||'') !== shiftF) return false;
     if(!q) return true;
     return [r.machine,r.problem,r.location,r.rootcause,r.solution,r.parts,r.note]
       .join(' ').toLowerCase().includes(q);
   });
 
   if(filteredCache.length===0){
-    tbody.innerHTML = '<tr class="empty-row"><td colspan="13">ยังไม่มีข้อมูลบันทึก — ไปที่แท็บ "บันทึกข้อมูล" เพื่อเริ่มต้น</td></tr>';
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="14">ยังไม่มีข้อมูลบันทึก — ไปที่แท็บ "บันทึกข้อมูล" เพื่อเริ่มต้น</td></tr>';
     document.getElementById('paginationBar').style.display = 'none';
     return;
   }
@@ -1026,6 +1106,7 @@ function renderTable(keepPage){
     <tr>
       <td>${start + i + 1}</td>
       <td>${formatDate(r.date)}</td>
+      <td><span style="display:inline-block;padding:2px 10px;border-radius:20px;font-size:0.8rem;font-weight:700;background:${r.shift==='A'?'#e8f5e9':'#fff3e0'};color:${r.shift==='A'?'#2e7d32':'#e65100'};border:1px solid ${r.shift==='A'?'#a5d6a7':'#ffcc80'};">${r.shift?'กะ '+r.shift:'-'}</span></td>
       <td class="cell-clamp" title="${esc(r.problem)}">${esc(r.problem)}</td>
       <td>${formatTime(r.start)}</td>
       <td>${formatTime(r.end)}</td>
@@ -1099,7 +1180,7 @@ function formatTime(v){
 }
 
 function esc(s){
-  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 function formatDate(d){
   if(!d) return '';
@@ -1504,7 +1585,14 @@ document.getElementById('f-date').value = new Date().toISOString().slice(0,10);
 renderTable();
 renderDashboard();
 renderAnalysis();
-loadFromSheet();
+
+// ตรวจสอบว่าเปิดจาก file:// หรือเปล่า
+if(window.location.protocol === 'file:'){
+  setSyncStatus('error', '⚠️ เปิดจาก file:// — Sheet เชื่อมต่อไม่ได้ กรุณาอัพโหลดไฟล์ขึ้น Web Server หรือ GitHub Pages');
+  console.warn('ไม่สามารถเชื่อมต่อ Google Sheets ได้เมื่อเปิดจาก file:// protocol');
+} else {
+  loadFromSheet();
+}
 </script>
 
 
