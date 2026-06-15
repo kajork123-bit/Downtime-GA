@@ -641,7 +641,7 @@
 
 <script>
 // ===== Google Sheets Web App URL =====
-const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbx1pECIEwCJxIr0DGkJ-bc3cALdZSg-u0h2lR_fGLxqPU8tLnZwovUUkc5jR6cOcfXL/exec';
+const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbxgZj-afZeXHM6RFM5Fi_Hwne4X67PyrByRo9wbwVRMGYZKlZaHMeKEI1UZLVLGMG-uLQ/exec';
 
 let records = [];
 let deleteTargetId = null;
@@ -1074,10 +1074,12 @@ async function clearAndReload(){
 async function pushToSheet(record){
   setSyncStatus('syncing', '⏳ กำลังบันทึกไปยัง Sheet...');
   try{
+    const payload = { action:'save', record: record };
+    console.log('=== pushToSheet payload ===', JSON.stringify(payload, null, 2));
     await fetch(SHEET_API_URL, {
       method: 'POST',
       headers: {'Content-Type':'text/plain;charset=utf-8'},
-      body: JSON.stringify({ action:'save', record: record })
+      body: JSON.stringify(payload)
     });
     setSyncStatus('ok', '✅ บันทึกไปยัง Google Sheets แล้ว');
   } catch(err){
@@ -1138,8 +1140,11 @@ function saveRecord(){
   resetForm();
   // switch to history tab
   document.querySelector('.tab-btn[data-tab="history"]').click();
-  // sync to Google Sheets (fire and forget, then refresh from sheet)
-  pushToSheet(record).then(()=>{ loadFromSheet(); });
+  // sync to Google Sheets (fire and forget; don't reload to avoid re-parsing field mapping issues)
+  pushToSheet(record);
+  renderTable();
+  renderDashboard();
+  renderAnalysis();
 }
 
 function persist(){
