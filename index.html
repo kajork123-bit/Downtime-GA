@@ -859,32 +859,59 @@ function setSyncStatus(state, msg){
 
 // ---------- sanitize record — แปลงทุก field ให้เป็น string/number ที่ถูกต้อง ----------
 function sanitizeRecord(r){
-  function toStr(v){
-    if(v === null || v === undefined) return '';
-    if(typeof v === 'object' && v instanceof Date) return v.toISOString().slice(0,10);
-    return String(v);
+
+  // แปลงวันที่ → YYYY-MM-DD
+  function toDate(v){
+    if(!v) return '';
+    const s = String(v);
+    // รูปแบบ YYYY-MM-DD อยู่แล้ว
+    if(/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+    // ISO string เช่น "2024-06-15T00:00:00.000Z"
+    const m = s.match(/^(\d{4}-\d{2}-\d{2})/);
+    if(m) return m[1];
+    // DD/MM/YYYY (ไทย)
+    const m2 = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+    if(m2) return `${m2[3]}-${m2[2].padStart(2,'0')}-${m2[1].padStart(2,'0')}`;
+    return s;
   }
+
+  // แปลงเวลา → HH:MM (Bangkok UTC+7)
   function toTime(v){
     if(!v) return '';
-    if(typeof v === 'object' && v instanceof Date){
-      let h = v.getUTCHours() + 7;
-      let m = v.getUTCMinutes();
+    const s = String(v);
+    // HH:MM หรือ HH:MM:SS อยู่แล้ว
+    const plain = s.match(/^(\d{1,2}):(\d{2})/);
+    if(plain) return plain[1].padStart(2,'0') + ':' + plain[2];
+    // ISO epoch 1899-12-30 = time-only จาก Sheets
+    // เช่น "1899-12-30T07:00:00.000Z" → UTC 07:00 → BKK 14:00
+    // หรือ "1899-12-29T17:00:00.000Z" → UTC 17:00 → BKK 00:00
+    const iso = s.match(/T(\d{2}):(\d{2})/);
+    if(iso){
+      let h = parseInt(iso[1], 10) + 7;  // +7 Bangkok
+      const m = parseInt(iso[2], 10);
       if(h >= 24) h -= 24;
       return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
     }
-    const m2 = String(v).match(/(\d{1,2}):(\d{2})/);
-    if(m2) return m2[1].padStart(2,'0') + ':' + m2[2];
     return '';
   }
+
+  function toStr(v){
+    if(v === null || v === undefined) return '';
+    return String(v);
+  }
+
+  // downtime: ตัวเลขบวก (นาที) เท่านั้น
   let dt = r.downtime;
   if(typeof dt === 'number'){
+    // Sheets fraction of day (0 < x < 1) → แปลงเป็นนาที
     dt = (dt > 0 && dt < 1) ? Math.round(dt * 1440) : Math.max(0, Math.round(dt));
   } else {
     dt = Math.max(0, parseInt(String(dt||'0'), 10) || 0);
   }
+
   return {
     id:        toStr(r.id),
-    date:      toStr(r.date),
+    date:      toDate(r.date),
     shift:     toStr(r.shift),
     start:     toTime(r.start),
     end:       toTime(r.end),
@@ -906,9 +933,14 @@ async function loadFromSheet(){
     const res = await fetch(SHEET_API_URL);
     const json = await res.json();
     if(json.status === 'ok' && Array.isArray(json.records)){
+      // DEBUG: แสดงข้อมูล raw ตัวแรกใน console เพื่อตรวจสอบรูปแบบ
+      if(json.records.length > 0){
+        console.log('=== RAW record[0] from Sheet ===');
+        console.log(JSON.stringify(json.records[0], null, 2));
+      }
       records = json.records.map(r => sanitizeRecord(r));
       localStorage.setItem('downtimeRecords', JSON.stringify(records));
-      setSyncStatus('ok');
+      setSyncStatus('ok', '✅ เชื่อมต่อ Google Sheets ('+records.length+' รายการ)');
     } else {
       throw new Error(json.message || 'รูปแบบข้อมูลไม่ถูกต้อง');
     }
@@ -1184,7 +1216,15 @@ function esc(s){
 }
 function formatDate(d){
   if(!d) return '';
-  const dt = new Date(d);
+  const s = String(d);
+  // YYYY-MM-DD → แปลงตรงไม่ผ่าน Date() เพื่อหลีกเลี่ยง timezone shift
+  const m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if(m){
+    const months = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+    return `${parseInt(m[3])} ${months[parseInt(m[2])-1]} ${m[1]}`;
+  }
+  const dt = new Date(s);
+  if(isNaN(dt.getTime())) return s;
   return dt.toLocaleDateString('th-TH',{year:'numeric',month:'2-digit',day:'2-digit'});
 }
 
