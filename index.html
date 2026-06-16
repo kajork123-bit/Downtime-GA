@@ -23,45 +23,60 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
   :root{
-    --navy:#0f2942;
-    --navy-light:#1c4264;
-    --steel:#5b7a99;
-    --amber:#e8932e;
-    --amber-light:#fdf1e2;
-    --green:#2f9e6e;
-    --red:#d6483f;
-    --bg:#eef1f5;
-    --bg-grad:radial-gradient(circle at top right, #f7f9fc 0%, #e7ebf1 60%);
+    /* ── Professional Slate-Indigo palette ── */
+    --navy:#1e3a5f;
+    --navy-light:#2d5282;
+    --steel:#4a7fa5;
+    --indigo:#3d52a0;
+    --indigo-light:#5b6fc9;
+    --amber:#f59e0b;
+    --amber-light:#fef3c7;
+    --green:#059669;
+    --green-light:#d1fae5;
+    --red:#dc2626;
+    --red-light:#fee2e2;
+    --teal:#0d9488;
+    --purple:#7c3aed;
+    --cyan:#0891b2;
+    --bg:#f0f4f8;
+    --bg-grad:linear-gradient(135deg, #f0f4f8 0%, #e4eaf2 40%, #dce4ef 100%);
     --card:#ffffff;
-    --card-soft:#f7f9fb;
-    --border:#e1e7ed;
-    --text:#1f2d3a;
-    --text-soft:#6b7c8d;
-    --radius:14px;
-    --radius-sm:9px;
-    --shadow:0 2px 10px rgba(15,41,66,0.05);
-    --shadow-md:0 8px 28px rgba(15,41,66,0.10);
-    --header-grad:linear-gradient(135deg,#0f2942 0%, #1c4264 55%, #2a5d8a 100%);
+    --card-soft:#f8fafc;
+    --border:#d1d9e6;
+    --text:#1a2840;
+    --text-soft:#5a6a7e;
+    --radius:16px;
+    --radius-sm:10px;
+    --shadow:0 1px 8px rgba(30,58,95,0.07), 0 4px 16px rgba(30,58,95,0.04);
+    --shadow-md:0 8px 32px rgba(30,58,95,0.13);
+    --header-grad:linear-gradient(135deg,#1e3a5f 0%, #2d5282 40%, #3d52a0 70%, #4a7fa5 100%);
     --transition:background .25s ease, color .25s ease, border-color .25s ease, box-shadow .25s ease;
   }
   [data-theme="dark"]{
-    --navy:#3c7fc0;
-    --navy-light:#5b9be0;
-    --steel:#8aa6c4;
-    --amber:#f0a23f;
-    --amber-light:#3a2d1c;
-    --green:#3fc28b;
-    --red:#ef5d52;
-    --bg:#0e1620;
-    --bg-grad:radial-gradient(circle at top right, #1a2632 0%, #0c1219 60%);
-    --card:#161f2b;
-    --card-soft:#1d2836;
-    --border:#283546;
-    --text:#e6edf5;
-    --text-soft:#8ea0b5;
-    --shadow:0 2px 10px rgba(0,0,0,0.35);
-    --shadow-md:0 10px 32px rgba(0,0,0,0.5);
-    --header-grad:linear-gradient(135deg,#0a1622 0%, #122436 55%, #1a3653 100%);
+    --navy:#7cb9f4;
+    --navy-light:#a8d4ff;
+    --steel:#89b8d8;
+    --indigo:#9ca8ff;
+    --indigo-light:#b8c2ff;
+    --amber:#fcd34d;
+    --amber-light:#3d2e0a;
+    --green:#4ade80;
+    --green-light:#0a3320;
+    --red:#fc8181;
+    --red-light:#3d0a0a;
+    --teal:#34d9c8;
+    --purple:#b89bff;
+    --cyan:#38e4f5;
+    --bg:#0f1923;
+    --bg-grad:linear-gradient(135deg,#0f1923 0%,#151f2e 50%,#111c2a 100%);
+    --card:#1c2a3d;
+    --card-soft:#233248;
+    --border:#2e4060;
+    --text:#eaf0fa;
+    --text-soft:#90a8c2;
+    --shadow:0 2px 14px rgba(0,0,0,0.45);
+    --shadow-md:0 10px 36px rgba(0,0,0,0.6);
+    --header-grad:linear-gradient(135deg,#0d1e35 0%,#1a3358 40%,#243d6b 70%,#1e4570 100%);
   }
   *{box-sizing:border-box; margin:0; padding:0;}
   body{
@@ -347,6 +362,112 @@
     border-radius:50%; animation:spin .6s linear infinite; margin-left:8px;
   }
   @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* ── New feature styles ── */
+
+  /* MoM badge on KPI cards */
+  .kpi-mom{font-size:0.72rem; font-weight:700; padding:2px 7px; border-radius:20px; display:inline-block; margin-top:2px;}
+  .kpi-mom.up{background:var(--red-light); color:var(--red);}
+  .kpi-mom.down{background:var(--green-light); color:var(--green);}
+  .kpi-mom.flat{background:var(--card-soft); color:var(--text-soft);}
+
+  /* Target progress */
+  .target-bar-wrap{margin-top:6px;}
+  .target-bar-track{height:6px; border-radius:4px; background:var(--border); overflow:hidden;}
+  .target-bar-fill{height:100%; border-radius:4px; transition:width .6s ease; background:linear-gradient(90deg,var(--green),var(--amber));}
+  .target-bar-fill.over{background:linear-gradient(90deg,var(--amber),var(--red));}
+  .target-bar-label{font-size:0.7rem; color:var(--text-soft); margin-top:3px;}
+
+  /* Recurring warning badge */
+  .recurring-badge{
+    display:inline-block; padding:1px 6px; border-radius:10px; font-size:0.68rem; font-weight:700;
+    background:rgba(220,38,38,0.12); color:var(--red); margin-left:4px; vertical-align:middle;
+  }
+
+  /* Heatmap */
+  .heatmap-wrap{overflow-x:auto;}
+  .heatmap-table{border-collapse:collapse; font-size:0.75rem; width:100%;}
+  .heatmap-table th{padding:4px 6px; color:var(--text-soft); font-weight:600; text-align:center;}
+  .heatmap-table td{width:36px; height:32px; text-align:center; border-radius:5px; cursor:default; font-size:0.72rem; font-weight:600; transition:.15s;}
+  .heatmap-table td.hm-0{background:var(--card-soft); color:var(--border);}
+  .heatmap-table .row-label{color:var(--text-soft); font-weight:600; white-space:nowrap; padding-right:8px; text-align:right;}
+
+  /* Availability table */
+  .avail-table{width:100%; border-collapse:collapse; font-size:0.83rem;}
+  .avail-table th{background:var(--header-grad); color:#fff; padding:9px 10px; text-align:left; font-weight:600;}
+  .avail-table td{padding:8px 10px; border-bottom:1px solid var(--border); color:var(--text);}
+  .avail-table tr:nth-child(even) td{background:var(--card-soft);}
+  .avail-bar{height:8px; border-radius:4px; background:var(--border); overflow:hidden; margin-top:3px; min-width:80px;}
+  .avail-bar-fill{height:100%; border-radius:4px;}
+
+  /* Timeline */
+  .timeline-wrap{overflow-x:auto; padding-bottom:4px;}
+  .tl-row{display:flex; align-items:center; gap:6px; margin-bottom:6px; min-width:600px;}
+  .tl-label{width:120px; font-size:0.77rem; font-weight:600; color:var(--text-soft); text-align:right; flex-shrink:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .tl-track{flex:1; height:22px; background:var(--card-soft); border-radius:6px; position:relative; border:1px solid var(--border);}
+  .tl-seg{position:absolute; top:2px; height:18px; border-radius:4px; opacity:.85; cursor:pointer; transition:.15s;}
+  .tl-seg:hover{opacity:1; transform:scaleY(1.15);}
+  .tl-header{display:flex; gap:6px; margin-bottom:4px; min-width:600px; padding-left:126px;}
+  .tl-month-label{font-size:0.7rem; color:var(--text-soft); text-align:center;}
+
+  /* Pareto */
+  .pareto-legend{display:flex; gap:16px; margin-top:8px; flex-wrap:wrap; font-size:0.78rem; color:var(--text-soft);}
+  .pareto-legend span{display:flex; align-items:center; gap:5px;}
+  .pareto-legend i{display:inline-block; width:12px; height:12px; border-radius:3px;}
+
+  /* Section divider */
+  .section-title{
+    font-size:0.88rem; font-weight:700; color:var(--navy); margin:18px 0 12px;
+    display:flex; align-items:center; gap:8px; padding-bottom:6px;
+    border-bottom:2px solid var(--border);
+  }
+
+  /* Target input row */
+  .target-row{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:12px;}
+  .target-row label{font-size:0.83rem; color:var(--text-soft); font-weight:600;}
+  .target-row input[type=number]{width:110px; padding:5px 10px; font-size:0.85rem;}
+
+  /* Sortable table headers */
+  thead th.sortable{cursor:pointer; user-select:none;}
+  thead th.sortable:hover{background:rgba(255,255,255,0.12);}
+  thead th.sort-asc::after{content:' ▲'; font-size:0.7rem; opacity:0.85;}
+  thead th.sort-desc::after{content:' ▼'; font-size:0.7rem; opacity:0.85;}
+
+  /* MTBF / MTTR KPI card colour */
+  .kpi-card.teal{border-left-color:#00897b;}
+  .kpi-card.teal .kpi-value{color:#00897b;}
+  .kpi-card.purple{border-left-color:#6d4c9f;}
+  .kpi-card.purple .kpi-value{color:#6d4c9f;}
+
+  /* Mobile card view — hidden on desktop */
+  .mobile-cards{display:none;}
+  @media(max-width:768px){
+    .table-wrap table{display:none;}
+    .mobile-cards{display:flex; flex-direction:column; gap:12px; margin-top:8px;}
+    .m-card{
+      background:var(--card); border-radius:var(--radius); padding:14px 16px;
+      box-shadow:var(--shadow); border:1px solid var(--border); font-size:0.84rem;
+      transition:var(--transition);
+    }
+    .m-card-header{
+      display:flex; justify-content:space-between; align-items:flex-start;
+      margin-bottom:8px; gap:8px;
+    }
+    .m-card-title{font-weight:700; color:var(--navy); font-size:0.92rem; flex:1;}
+    .m-card-badge{white-space:nowrap;}
+    .m-card-row{
+      display:grid; grid-template-columns:110px 1fr; gap:2px 6px;
+      padding:3px 0; border-bottom:1px solid var(--border); font-size:0.82rem;
+    }
+    .m-card-row:last-of-type{border-bottom:none;}
+    .m-card-key{color:var(--text-soft); font-weight:600; font-size:0.76rem; padding-top:1px;}
+    .m-card-val{color:var(--text); word-break:break-word;}
+    .m-card-actions{
+      display:flex; gap:8px; margin-top:10px; justify-content:flex-end;
+    }
+    .kpi-grid{grid-template-columns:repeat(auto-fit,minmax(150px,1fr));}
+    .kpi-value{font-size:1.6rem;}
+  }
 </style>
 </head>
 <body>
@@ -387,16 +508,19 @@
         <div class="kpi-label">จำนวนปัญหาทั้งหมด</div>
         <div class="kpi-value" id="kpi-total">1</div>
         <div class="kpi-sub">รายการที่บันทึกไว้</div>
+        <div class="kpi-mom" id="kpi-total-mom"></div>
       </div>
       <div class="kpi-card amber">
         <div class="kpi-label">Downtime รวม (นาที)</div>
         <div class="kpi-value" id="kpi-downtime">67</div>
         <div class="kpi-sub" id="kpi-downtime-hr">1.1 ชั่วโมง</div>
+        <div class="kpi-mom" id="kpi-downtime-mom"></div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">Downtime เฉลี่ย/ครั้ง</div>
         <div class="kpi-value" id="kpi-avg">67</div>
         <div class="kpi-sub">นาที / ครั้ง</div>
+        <div class="kpi-mom" id="kpi-avg-mom"></div>
       </div>
       <div class="kpi-card green">
         <div class="kpi-label">เครื่องที่มีปัญหามากที่สุด</div>
@@ -413,6 +537,35 @@
         <div class="kpi-value" id="kpi-shift-b" style="color:#e65100;">0</div>
         <div class="kpi-sub" id="kpi-shift-b-count">0 ครั้ง</div>
       </div>
+      <div class="kpi-card teal">
+        <div class="kpi-icon" style="font-size:1.3rem;">⏱️</div>
+        <div class="kpi-label">MTBF (นาที)</div>
+        <div class="kpi-value" id="kpi-mtbf">—</div>
+        <div class="kpi-sub">Mean Time Between Failures</div>
+      </div>
+      <div class="kpi-card purple">
+        <div class="kpi-icon" style="font-size:1.3rem;">🔧</div>
+        <div class="kpi-label">MTTR (นาที)</div>
+        <div class="kpi-value" id="kpi-mttr">—</div>
+        <div class="kpi-sub">Mean Time To Repair</div>
+      </div>
+      <div class="kpi-card" style="border-left:4px solid var(--cyan);">
+        <div class="kpi-label">เป้าหมาย Downtime/เดือน</div>
+        <div class="kpi-value" id="kpi-target-used" style="color:var(--cyan);">—</div>
+        <div class="kpi-sub" id="kpi-target-sub">ตั้งค่าเป้าหมายด้านล่าง</div>
+        <div class="target-bar-wrap">
+          <div class="target-bar-track"><div class="target-bar-fill" id="kpi-target-bar" style="width:0%"></div></div>
+          <div class="target-bar-label" id="kpi-target-pct"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Target setting -->
+    <div class="target-row" style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 16px;margin-bottom:16px;">
+      <span style="font-size:1rem;">🎯</span>
+      <label>ตั้งเป้าหมาย Downtime สูงสุดต่อเดือน (นาที):</label>
+      <input type="number" id="targetInput" min="0" placeholder="เช่น 480" oninput="saveTarget()" style="width:110px;">
+      <span style="font-size:0.8rem;color:var(--text-soft);">ปล่อยว่างเพื่อปิดใช้งาน</span>
     </div>
 
     <div class="charts-grid">
@@ -434,6 +587,22 @@
       <div class="chart-card">
         <h3>Downtime ตามสถานที่/แผนก</h3>
         <div class="chart-wrap"><canvas id="chartLocation" style="box-sizing: border-box; display: block; height: 280px; width: 630px;" width="630" height="280"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Pareto + Heatmap row -->
+    <div class="charts-grid-3" style="margin-bottom:20px;">
+      <div class="chart-card">
+        <h3>📊 Pareto — เครื่องที่ Downtime 80% (Pareto 80/20)</h3>
+        <div class="chart-wrap" style="height:300px;"><canvas id="chartPareto"></canvas></div>
+        <div class="pareto-legend">
+          <span><i style="background:var(--indigo);"></i>Downtime (นาที)</span>
+          <span><i style="background:var(--amber); border-radius:50%;"></i>% สะสม</span>
+        </div>
+      </div>
+      <div class="chart-card">
+        <h3>🌡️ Heatmap — ปัญหาตามวัน × ช่วงเวลา</h3>
+        <div class="heatmap-wrap" id="heatmapWrap" style="margin-top:8px;"></div>
       </div>
     </div>
 
@@ -483,22 +652,34 @@
           </select>
           <button class="btn btn-outline btn-sm" onclick="loadFromSheet()">🔄 รีเฟรชจาก Sheet</button>
           <button class="btn btn-outline btn-sm" onclick="clearAndReload()" style="color:#e53935;border-color:#e53935;">🗑️ ล้างแคช</button>
-          <button class="btn btn-green btn-sm" onclick="openExportModal(&#39;excel&#39;)">📊 Export Excel</button>
-          <button class="btn btn-red btn-sm" onclick="openExportModal(&#39;pdf&#39;)">📄 Export PDF</button>
+          <button class="btn btn-green btn-sm" onclick="openExportModal('excel')">📊 Export Excel</button>
+          <button class="btn btn-red btn-sm" onclick="openExportModal('pdf')">📄 Export PDF</button>
         </div>
       </div>
       <div class="table-wrap">
         <table id="dataTable">
           <thead>
             <tr>
-              <th>ลำดับ</th><th>วันที่</th><th>กะ</th><th>ปัญหา</th><th>เวลาเริ่ม</th><th>เวลาเสร็จ</th>
-              <th>Downtime (นาที)</th><th>เครื่อง</th><th>สถานที่</th><th>วิธีแก้ไข</th>
-              <th>ปัญหาที่แท้จริง</th><th>อะไหล่ที่เสีย</th><th>หมายเหตุ</th><th>จัดการ</th>
+              <th class="sortable" data-col="idx">ลำดับ</th>
+              <th class="sortable" data-col="date">วันที่</th>
+              <th class="sortable" data-col="shift">กะ</th>
+              <th class="sortable" data-col="problem">ปัญหา</th>
+              <th class="sortable" data-col="start">เวลาเริ่ม</th>
+              <th class="sortable" data-col="end">เวลาเสร็จ</th>
+              <th class="sortable" data-col="downtime">Downtime (นาที)</th>
+              <th class="sortable" data-col="machine">เครื่อง</th>
+              <th class="sortable" data-col="location">สถานที่</th>
+              <th>วิธีแก้ไข</th>
+              <th>ปัญหาที่แท้จริง</th>
+              <th>อะไหล่ที่เสีย</th>
+              <th>หมายเหตุ</th>
+              <th>จัดการ</th>
             </tr>
           </thead>
           <tbody id="tableBody">
   </tbody>
         </table>
+        <div class="mobile-cards" id="mobileCards"></div>
       </div>
       <div id="paginationBar" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-top:12px; padding:4px 2px;">
         <div id="paginationInfo" style="font-size:0.85rem; color:var(--text-soft);">แสดง 1–1 จาก 1 รายการ</div>
@@ -618,7 +799,23 @@
         </div>
       </div>
       <h2 style="margin-top:6px;">💡 ข้อเสนอแนะอัตโนมัติ</h2>
-      <div class="insight-list" id="insightList"><div class="insight-item">📌 รวม Downtime ทั้งหมด <b>1,829 นาที</b> (30.5 ชั่วโมง) จากเหตุการณ์ <b>35</b> ครั้ง</div><div class="insight-item">🏭 เครื่องจักรที่ควรให้ความสำคัญที่สุดคือ <b>VIN Code</b> ซึ่งสูญเสียเวลารวม <b>1150 นาที</b> — แนะนำให้จัดทำแผน PM เชิงป้องกันสำหรับเครื่องนี้</div><div class="insight-item">🔁 ปัญหา "<b>Hanger ค้าง</b>" เกิดขึ้นซ้ำ <b>8 ครั้ง</b> — ควรตรวจสอบสาเหตุที่แท้จริงและกำหนดมาตรการป้องกันถาวร (Permanent Corrective Action)</div><div class="insight-item">⏱️ เหตุการณ์ที่ใช้เวลาแก้ไขนานที่สุดคือ <b>1140 นาที</b> (VIN Code วันที่ 12/05/2569) — ควรทบทวนแผนเผชิญเหตุเพื่อลดเวลาตอบสนอง</div><div class="insight-item">🔧 อะไหล่ที่เปลี่ยนบ่อยที่สุดคือ "<b>-</b>" (11 ครั้ง) — ควรพิจารณาสำรองสต็อกเพิ่มเติมหรือตรวจสอบคุณภาพอะไหล่</div></div>
+      <div class="insight-list" id="insightList"></div>div>
+
+      <!-- Availability per machine -->
+      <h2 style="margin-top:22px;">📈 Availability % ต่อเครื่องจักร</h2>
+      <div style="overflow-x:auto;margin-top:10px;">
+        <table class="avail-table" id="availTable">
+          <thead><tr><th>เครื่องจักร</th><th>เหตุการณ์</th><th>Downtime รวม (นาที)</th><th>Availability %</th><th></th></tr></thead>
+          <tbody id="availTableBody"></tbody>
+        </table>
+      </div>
+
+      <!-- Timeline -->
+      <h2 style="margin-top:22px;">⏳ Timeline — Downtime ต่อเครื่อง</h2>
+      <div style="font-size:0.78rem;color:var(--text-soft);margin-bottom:8px;">แสดงเหตุการณ์ทั้งหมด (สูงสุด 10 เครื่อง) • กว้างของแท่ง = ระยะเวลา downtime</div>
+      <div class="chart-card" style="padding:16px 20px;">
+        <div class="timeline-wrap" id="timelineWrap"></div>
+      </div>
     </div>
   </div>
 
@@ -694,6 +891,7 @@ function apiUrl(params=''){ return SHEET_API_URL + '?token=' + API_SECRET + (par
 let records = [];
 let deleteTargetId = null;
 let charts = {};
+let downtimeTarget = 0; // loaded from localStorage after DOM ready
 let dashRange = 'month';   // current dashboard date-range filter
 let histRange = 'month';   // current history date-range filter
 let dashCustomFrom = null; // custom date range override
@@ -1315,7 +1513,24 @@ function confirmDelete(){
 // ---------- Table ----------
 let currentPage = 1;
 let pageSize = 20;
+let sortCol = 'date';
+let sortDir = 'desc'; // 'asc' | 'desc'
 let filteredCache = [];
+
+function setSort(col){
+  if(sortCol === col){ sortDir = sortDir === 'asc' ? 'desc' : 'asc'; }
+  else { sortCol = col; sortDir = col === 'date' ? 'desc' : 'asc'; }
+  currentPage = 1;
+  renderTable();
+}
+
+// Attach sort listeners after DOM ready (called once after first renderTable)
+function attachSortListeners(){
+  document.querySelectorAll('thead th.sortable').forEach(th=>{
+    th.addEventListener('click', ()=> setSort(th.dataset.col));
+  });
+}
+let _sortListenersAttached = false;
 
 function changePageSize(){
   pageSize = Number(document.getElementById('pageSizeSelect').value);
@@ -1337,10 +1552,12 @@ function downtimeBadge(min){
 function renderTable(keepPage){
   if(!keepPage) currentPage = 1;
   const tbody = document.getElementById('tableBody');
+  const mobileCards = document.getElementById('mobileCards');
   const q = document.getElementById('searchBox').value.toLowerCase();
   const shiftF = document.getElementById('shiftFilter')?.value || '';
-  const sorted = [...records].sort((a,b)=> (b.date+b.start).localeCompare(a.date+a.start));
-  const rangeFiltered = filterByRange(sorted, histRange);
+
+  // Apply range filter then text/shift filter
+  const rangeFiltered = filterByRange(records, histRange);
   filteredCache = rangeFiltered.filter(r=>{
     if(shiftF && (r.shift||'') !== shiftF) return false;
     if(!q) return true;
@@ -1348,8 +1565,41 @@ function renderTable(keepPage){
       .join(' ').toLowerCase().includes(q);
   });
 
+  // Sort
+  const colVal = (r, col) => {
+    if(col==='date')     return (r.date||'')+' '+(r.start||'');
+    if(col==='shift')    return r.shift||'';
+    if(col==='problem')  return r.problem||'';
+    if(col==='start')    return r.start||'';
+    if(col==='end')      return r.end||'';
+    if(col==='downtime') return r.downtime||0;
+    if(col==='machine')  return r.machine||'';
+    if(col==='location') return r.location||'';
+    return '';
+  };
+  filteredCache.sort((a,b)=>{
+    const va = colVal(a, sortCol), vb = colVal(b, sortCol);
+    let cmp;
+    if(sortCol==='downtime') cmp = va - vb;
+    else cmp = String(va).localeCompare(String(vb));
+    return sortDir === 'asc' ? cmp : -cmp;
+  });
+
+  // Update sort indicators on headers
+  document.querySelectorAll('thead th.sortable').forEach(th=>{
+    th.classList.remove('sort-asc','sort-desc');
+    if(th.dataset.col === sortCol) th.classList.add(sortDir==='asc'?'sort-asc':'sort-desc');
+  });
+
+  // Attach sort click listeners once
+  if(!_sortListenersAttached){
+    attachSortListeners();
+    _sortListenersAttached = true;
+  }
+
   if(filteredCache.length===0){
     tbody.innerHTML = '<tr class="empty-row"><td colspan="14">ยังไม่มีข้อมูลบันทึก — ไปที่แท็บ "บันทึกข้อมูล" เพื่อเริ่มต้น</td></tr>';
+    if(mobileCards) mobileCards.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-soft);">ยังไม่มีข้อมูล</div>';
     document.getElementById('paginationBar').style.display = 'none';
     return;
   }
@@ -1361,7 +1611,11 @@ function renderTable(keepPage){
   const end = Math.min(start + pageSize, filteredCache.length);
   const pageItems = filteredCache.slice(start, end);
 
-  tbody.innerHTML = pageItems.map((r,i)=>`
+  // Desktop table rows
+  tbody.innerHTML = pageItems.map((r,i)=>{
+    const recurringMachines = getRecurringMachines();
+    const recurBadge = recurringMachines.has(r.machine) ? '<span class="recurring-badge" title="เสียซ้ำ ≥3 ครั้งใน 30 วัน">⚠️ ซ้ำ</span>' : '';
+    return `
     <tr>
       <td>${start + i + 1}</td>
       <td>${formatDate(r.date)}</td>
@@ -1370,7 +1624,7 @@ function renderTable(keepPage){
       <td>${formatTime(r.start)}</td>
       <td>${formatTime(r.end)}</td>
       <td>${downtimeBadge(r.downtime)}</td>
-      <td>${esc(r.machine)}</td>
+      <td>${esc(r.machine)}${recurBadge}</td>
       <td>${esc(r.location)}</td>
       <td class="cell-clamp" title="${esc(r.solution)}">${esc(r.solution)}</td>
       <td class="cell-clamp" title="${esc(r.rootcause)}">${esc(r.rootcause)}</td>
@@ -1381,8 +1635,34 @@ function renderTable(keepPage){
         <button class="icon-btn" title="คัดลอก" onclick="duplicateRecord('${r.id}')">📋</button>
         <button class="icon-btn" title="ลบ" onclick="deleteRecord('${r.id}')">🗑️</button>
       </td>
-    </tr>
-  `).join('');
+    </tr>`;
+  }).join('');
+
+  // Mobile cards
+  if(mobileCards){
+    mobileCards.innerHTML = pageItems.map((r,i)=>`
+      <div class="m-card">
+        <div class="m-card-header">
+          <div class="m-card-title">${esc(r.problem)||'-'}</div>
+          <div class="m-card-badge">${downtimeBadge(r.downtime)}</div>
+        </div>
+        <div class="m-card-row"><span class="m-card-key">📅 วันที่</span><span class="m-card-val">${formatDate(r.date)}</span></div>
+        <div class="m-card-row"><span class="m-card-key">⏰ เวลา</span><span class="m-card-val">${formatTime(r.start)} – ${formatTime(r.end)}</span></div>
+        <div class="m-card-row"><span class="m-card-key">🔄 กะ</span><span class="m-card-val">${r.shift?'กะ '+r.shift:'-'}</span></div>
+        <div class="m-card-row"><span class="m-card-key">⚙️ เครื่อง</span><span class="m-card-val">${esc(r.machine)}</span></div>
+        <div class="m-card-row"><span class="m-card-key">📍 สถานที่</span><span class="m-card-val">${esc(r.location)}</span></div>
+        ${r.rootcause?`<div class="m-card-row"><span class="m-card-key">🔍 สาเหตุ</span><span class="m-card-val">${esc(r.rootcause)}</span></div>`:''}
+        ${r.solution?`<div class="m-card-row"><span class="m-card-key">🛠️ วิธีแก้</span><span class="m-card-val">${esc(r.solution)}</span></div>`:''}
+        ${r.parts?`<div class="m-card-row"><span class="m-card-key">🔩 อะไหล่</span><span class="m-card-val">${esc(r.parts)}</span></div>`:''}
+        ${r.note?`<div class="m-card-row"><span class="m-card-key">📝 หมายเหตุ</span><span class="m-card-val">${esc(r.note)}</span></div>`:''}
+        <div class="m-card-actions">
+          <button class="icon-btn" title="แก้ไข" onclick="editRecord('${r.id}')">✏️</button>
+          <button class="icon-btn" title="คัดลอก" onclick="duplicateRecord('${r.id}')">📋</button>
+          <button class="icon-btn" title="ลบ" onclick="deleteRecord('${r.id}')">🗑️</button>
+        </div>
+      </div>
+    `).join('');
+  }
 
   // Pagination bar
   document.getElementById('paginationBar').style.display = 'flex';
@@ -1401,7 +1681,6 @@ function renderTable(keepPage){
   btnsHtml += `<button ${btnStyle(false)} onclick="goToPage(1)" ${currentPage===1?'disabled':''}>«</button>`;
   btnsHtml += `<button ${btnStyle(false)} onclick="goToPage(${currentPage-1})" ${currentPage===1?'disabled':''}>‹</button>`;
 
-  // Show window of pages around current
   let pageStart = Math.max(1, currentPage - 2);
   let pageEnd   = Math.min(totalPages, currentPage + 2);
   if(pageStart > 1) btnsHtml += `<button ${btnStyle(false)} onclick="goToPage(1)">1</button>`;
@@ -1489,6 +1768,24 @@ function renderDashboard(){
   document.getElementById('kpi-shift-b').textContent = totalB.toLocaleString();
   document.getElementById('kpi-shift-b-count').textContent = `${shiftB.length} ครั้ง`;
 
+  // MTBF & MTTR
+  // MTTR = average downtime per failure (mean repair time)
+  const mttr = total > 0 ? Math.round(totalDowntime / total) : 0;
+  // MTBF = (operating window - total downtime) / number of failures
+  // Estimate operating window from first to last event date, defaulting to 1 shift = 480 min if only 1 record
+  let mtbf = 0;
+  if(total > 0){
+    const dates = dash.map(r=>r.date).filter(Boolean).sort();
+    const firstDate = new Date(dates[0]+'T00:00:00');
+    const lastDate  = new Date(dates[dates.length-1]+'T00:00:00');
+    const windowDays = Math.max(1, Math.round((lastDate - firstDate)/(1000*60*60*24)) + 1);
+    const operatingMins = windowDays * 480; // assume 1×8-hr shift per day
+    const uptime = Math.max(0, operatingMins - totalDowntime);
+    mtbf = total > 0 ? Math.round(uptime / total) : 0;
+  }
+  document.getElementById('kpi-mtbf').textContent = total > 0 ? mtbf.toLocaleString() : '—';
+  document.getElementById('kpi-mttr').textContent = total > 0 ? mttr.toLocaleString() : '—';
+
   // top machine
   const machineMap = {};
   dash.forEach(r=>{ machineMap[r.machine] = (machineMap[r.machine]||0)+1; });
@@ -1530,7 +1827,7 @@ function renderDashboard(){
 
   drawChart('chartMonthly','bar',{
     labels: timeLabels,
-    datasets:[{label:'Downtime (นาที)', data: timeKeys.map(k=>timeMap[k]), backgroundColor:'#e8932e', borderRadius:4}]
+    datasets:[{label:'Downtime (นาที)', data: timeKeys.map(k=>timeMap[k]), backgroundColor:'#3d52a0', borderRadius:5, hoverBackgroundColor:'#2d5282'}]
   },{plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}}});
 
   // machine pie — limit to top 8, others grouped
@@ -1559,7 +1856,7 @@ function renderDashboard(){
   const topCauses = Object.entries(causeMap).sort((a,b)=>b[1]-a[1]).slice(0,5);
   drawChart('chartCause','bar',{
     labels: topCauses.map(c=>truncate(c[0],20)),
-    datasets:[{label:'จำนวนครั้ง', data: topCauses.map(c=>c[1]), backgroundColor:'#0f2942', borderRadius:4}]
+    datasets:[{label:'จำนวนครั้ง', data: topCauses.map(c=>c[1]), backgroundColor:'#3d52a0', borderRadius:4}]
   },{indexAxis:'y', plugins:{legend:{display:false}}, scales:{x:{beginAtZero:true,ticks:{precision:0}}}});
 
   // location downtime (top 8, others grouped)
@@ -1578,8 +1875,207 @@ function renderDashboard(){
   }
   drawChart('chartLocation','bar',{
     labels: locLabels,
-    datasets:[{label:'Downtime (นาที)', data: locData, backgroundColor:'#5b7a99', borderRadius:4}]
+    datasets:[{label:'Downtime (นาที)', data: locData, backgroundColor:'#4a7fa5', borderRadius:4}]
   },{plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}}});
+
+  // ── New features ──
+  renderMoM(dash);
+  renderTarget(totalDowntime);
+  renderPareto(dash);
+  renderHeatmap(dash);
+}
+
+// ── Month-over-Month comparison ──
+function momBadge(curr, prev, elId, lowerIsBetter=false){
+  const el = document.getElementById(elId);
+  if(!el) return;
+  if(prev === 0 || prev == null){ el.textContent=''; el.className='kpi-mom'; return; }
+  const pct = Math.round((curr - prev) / prev * 100);
+  const better = lowerIsBetter ? pct < 0 : pct > 0;
+  const worse  = lowerIsBetter ? pct > 0 : pct < 0;
+  const sign = pct > 0 ? '▲' : '▼';
+  el.textContent = `${sign} ${Math.abs(pct)}% vs เดือนก่อน`;
+  el.className = 'kpi-mom ' + (pct === 0 ? 'flat' : better ? 'down' : 'up');
+}
+
+function renderMoM(dash){
+  // Get last month's data
+  const now = new Date();
+  const curYM = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  const prevDate = new Date(now.getFullYear(), now.getMonth()-1, 1);
+  const prevYM = `${prevDate.getFullYear()}-${String(prevDate.getMonth()+1).padStart(2,'0')}`;
+  const prev = records.filter(r=> r.date && String(r.date).slice(0,7) === prevYM);
+  const curr = records.filter(r=> r.date && String(r.date).slice(0,7) === curYM);
+  const cTotal = curr.length, pTotal = prev.length;
+  const cDown = curr.reduce((s,r)=>s+r.downtime,0);
+  const pDown = prev.reduce((s,r)=>s+r.downtime,0);
+  const cAvg = cTotal ? Math.round(cDown/cTotal) : 0;
+  const pAvg = pTotal ? Math.round(pDown/pTotal) : 0;
+  momBadge(cTotal, pTotal, 'kpi-total-mom', true);
+  momBadge(cDown,  pDown,  'kpi-downtime-mom', true);
+  momBadge(cAvg,   pAvg,   'kpi-avg-mom', true);
+}
+
+// ── Target/Goal tracking ──
+function saveTarget(){
+  downtimeTarget = Number(document.getElementById('targetInput').value)||0;
+  localStorage.setItem('dtTarget', downtimeTarget);
+  renderDashboard();
+}
+function renderTarget(totalDowntime){
+  const inp = document.getElementById('targetInput');
+  if(inp && !inp.value && downtimeTarget) inp.value = downtimeTarget;
+  const kpiVal = document.getElementById('kpi-target-used');
+  const kpiSub = document.getElementById('kpi-target-sub');
+  const bar    = document.getElementById('kpi-target-bar');
+  const pct    = document.getElementById('kpi-target-pct');
+  if(!kpiVal) return;
+  if(!downtimeTarget){ kpiVal.textContent='—'; kpiSub.textContent='ตั้งค่าเป้าหมายด้านล่าง'; if(bar) bar.style.width='0%'; if(pct) pct.textContent=''; return; }
+  const used = Math.min(totalDowntime, downtimeTarget * 2);
+  const p = Math.round(totalDowntime / downtimeTarget * 100);
+  kpiVal.textContent = totalDowntime.toLocaleString() + ' / ' + downtimeTarget.toLocaleString();
+  kpiSub.textContent = p <= 100 ? `เหลือ ${(downtimeTarget-totalDowntime).toLocaleString()} นาที` : `เกินเป้า ${(totalDowntime-downtimeTarget).toLocaleString()} นาที`;
+  if(bar){ bar.style.width = Math.min(p,100)+'%'; bar.classList.toggle('over', p>100); }
+  if(pct){ pct.textContent = p+'%'; }
+}
+
+// ── Pareto Chart ──
+function renderPareto(dash){
+  const machineDown = {};
+  dash.forEach(r=>{ machineDown[r.machine]=(machineDown[r.machine]||0)+r.downtime; });
+  const sorted = Object.entries(machineDown).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  if(!sorted.length) return;
+  const total = sorted.reduce((s,e)=>s+e[1],0);
+  let cum = 0;
+  const cumPct = sorted.map(e=>{ cum+=e[1]; return Math.round(cum/total*100); });
+  const isDark = document.documentElement.getAttribute('data-theme')==='dark';
+  const tc = isDark ? '#e2eaf5' : '#1a2840';
+  if(charts['chartPareto']) charts['chartPareto'].destroy();
+  const ctx = document.getElementById('chartPareto');
+  if(!ctx) return;
+  charts['chartPareto'] = new Chart(ctx,{
+    data:{
+      labels: sorted.map(e=>truncate(e[0],16)),
+      datasets:[
+        {type:'bar', label:'Downtime (นาที)', data:sorted.map(e=>e[1]), backgroundColor:'rgba(61,82,160,0.8)', borderRadius:4, yAxisID:'y'},
+        {type:'line', label:'% สะสม', data:cumPct, borderColor:'#f59e0b', pointBackgroundColor:'#f59e0b', tension:.35, yAxisID:'y2', fill:false, pointRadius:4}
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false, color:tc,
+      scales:{
+        y:{beginAtZero:true, ticks:{color:tc}, grid:{color:isDark?'rgba(255,255,255,0.05)':'rgba(0,0,0,0.05)'}},
+        y2:{position:'right', min:0, max:100, ticks:{color:tc,callback:v=>v+'%'}, grid:{display:false}}
+      },
+      plugins:{legend:{labels:{color:tc}}, annotation:{annotations:[{type:'line',yScaleID:'y2',yMin:80,yMax:80,borderColor:'rgba(245,158,11,0.5)',borderWidth:2,borderDash:[6,4],label:{display:true,content:'80%',color:'#f59e0b',font:{size:11}}}]}}
+    }
+  });
+}
+
+// ── Heatmap (day-of-week × month) ──
+function renderHeatmap(dash){
+  const wrap = document.getElementById('heatmapWrap');
+  if(!wrap) return;
+
+  const dayNames = ['จันทร์','อังคาร','พุธ','พฤหัส','ศุกร์','เสาร์','อาทิตย์'];
+  const thMonths = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+
+  // Collect unique months from data (sorted)
+  const monthSet = new Set();
+  dash.forEach(r=>{ if(r.date) monthSet.add(String(r.date).slice(0,7)); });
+  const months = [...monthSet].sort();
+
+  if(!months.length){
+    wrap.innerHTML = '<div style="color:var(--text-soft);font-size:0.82rem;padding:20px 0;">ไม่มีข้อมูลในช่วงเวลานี้</div>';
+    return;
+  }
+
+  // Build grid[dow 0-6][monthIdx] = total downtime
+  const grid = Array.from({length:7}, ()=>new Array(months.length).fill(0));
+  const countGrid = Array.from({length:7}, ()=>new Array(months.length).fill(0));
+
+  dash.forEach(r=>{
+    if(!r.date) return;
+    const d = new Date(r.date+'T00:00:00');
+    if(isNaN(d.getTime())) return;
+    const dow = (d.getDay()+6)%7; // Mon=0 … Sun=6
+    const ym  = String(r.date).slice(0,7);
+    const mi  = months.indexOf(ym);
+    if(mi < 0) return;
+    grid[dow][mi]      += r.downtime;
+    countGrid[dow][mi] += 1;
+  });
+
+  const maxVal = Math.max(...grid.flat(), 1);
+  const isDark = document.documentElement.getAttribute('data-theme')==='dark';
+
+  // Build month header labels
+  let html = '<div style="overflow-x:auto;">';
+  html += '<table class="heatmap-table" style="min-width:'+(months.length*52+130)+'px;">';
+  html += '<thead><tr>';
+  html += '<th style="width:80px;text-align:right;padding-right:10px;font-size:0.75rem;color:var(--text-soft);">วัน / เดือน</th>';
+  months.forEach(ym=>{
+    const [yr,mo] = ym.split('-');
+    html += `<th style="min-width:48px;text-align:center;">${thMonths[Number(mo)-1]}<br><span style="font-size:0.65rem;opacity:.7;">${yr}</span></th>`;
+  });
+  html += '</tr></thead><tbody>';
+
+  dayNames.forEach((day, di)=>{
+    html += `<tr>`;
+    html += `<td class="row-label" style="text-align:right;padding-right:10px;white-space:nowrap;">${day}</td>`;
+    grid[di].forEach((val, mi)=>{
+      const cnt = countGrid[di][mi];
+      if(val === 0){
+        html += `<td class="hm-0" style="text-align:center;" title="ไม่มีข้อมูล">·</td>`;
+        return;
+      }
+      const intensity = val / maxVal;
+      let bg, fg;
+      if(isDark){
+        const r2 = Math.round(30  + intensity*180);
+        const g2 = Math.round(80  + intensity*60);
+        const b2 = Math.round(200 - intensity*120);
+        bg = `rgb(${r2},${g2},${b2})`;
+        fg = intensity > 0.5 ? '#fff' : '#c8d8f0';
+      } else {
+        const r2 = Math.round(240 - intensity*190);
+        const g2 = Math.round(245 - intensity*190);
+        const b2 = Math.round(255 - intensity*80);
+        bg = `rgb(${r2},${g2},${b2})`;
+        fg = intensity > 0.55 ? '#fff' : '#1a2840';
+      }
+      const label = val >= 1000 ? (val/60).toFixed(0)+'h' : val;
+      html += `<td style="background:${bg};color:${fg};text-align:center;border-radius:6px;" title="${day} | ${thMonths[Number(months[mi].split('-')[1])-1]} — ${val} นาที (${cnt} ครั้ง)">${label}</td>`;
+    });
+    html += '</tr>';
+  });
+
+  html += '</tbody></table>';
+
+  // Legend
+  html += '<div style="display:flex;align-items:center;gap:8px;margin-top:10px;font-size:0.72rem;color:var(--text-soft);">';
+  html += '<span>น้อย</span>';
+  for(let i=0;i<=4;i++){
+    const v = i/4;
+    let bg;
+    if(isDark){ bg=`rgb(${Math.round(30+v*180)},${Math.round(80+v*60)},${Math.round(200-v*120)})`; }
+    else { bg=`rgb(${Math.round(240-v*190)},${Math.round(245-v*190)},${Math.round(255-v*80)})`; }
+    html += `<div style="width:22px;height:14px;border-radius:3px;background:${bg};border:1px solid var(--border);"></div>`;
+  }
+  html += '<span>มาก</span>';
+  html += '<span style="margin-left:12px;">ตัวเลข = นาที downtime (≥1000 แสดงเป็น h)</span>';
+  html += '</div></div>';
+
+  wrap.innerHTML = html;
+}
+
+// ── Recurring alert — compute machines that failed 3+ times in last 30 days ──
+function getRecurringMachines(days=30){
+  const cutoff = new Date(); cutoff.setDate(cutoff.getDate()-days);
+  const recent = records.filter(r=>r.date && new Date(r.date+'T00:00:00')>=cutoff);
+  const cnt = {};
+  recent.forEach(r=>{ cnt[r.machine]=(cnt[r.machine]||0)+1; });
+  return new Set(Object.entries(cnt).filter(e=>e[1]>=3).map(e=>e[0]));
 }
 
 function monthLabel(ym){
@@ -1589,7 +2085,7 @@ function monthLabel(ym){
 }
 function truncate(s,n){ return s.length>n ? s.slice(0,n)+'…' : s; }
 function palette(n){
-  const colors=['#0f2942','#e8932e','#5b7a99','#2f9e6e','#d6483f','#8e6fb0','#3aa6c7','#c4a83a'];
+  const colors=['#3d52a0','#f59e0b','#4a7fa5','#059669','#dc2626','#7c3aed','#0891b2','#d97706','#0d9488','#9333ea'];
   const res=[]; for(let i=0;i<n;i++) res.push(colors[i%colors.length]); return res;
 }
 function drawChart(id, type, data, options){
@@ -1692,6 +2188,71 @@ function renderAnalysis(){
   }
 
   insightList.innerHTML = insights.join('');
+
+  // ── Availability % per machine ──
+  const machineRecs = {};
+  records.forEach(r=>{ if(!machineRecs[r.machine]) machineRecs[r.machine]=[]; machineRecs[r.machine].push(r); });
+  const availBody = document.getElementById('availTableBody');
+  if(availBody){
+    const sortedMachines = Object.entries(machineRecs).sort((a,b)=>b[1].reduce((s,r)=>s+r.downtime,0)-a[1].reduce((s,r)=>s+r.downtime,0));
+    availBody.innerHTML = sortedMachines.map(([machine, recs])=>{
+      const dtTotal = recs.reduce((s,r)=>s+r.downtime,0);
+      const dates = recs.map(r=>r.date).filter(Boolean).sort();
+      const firstD = new Date(dates[0]+'T00:00:00');
+      const lastD  = new Date(dates[dates.length-1]+'T00:00:00');
+      const windowDays = Math.max(1, Math.round((lastD-firstD)/(1000*60*60*24))+1);
+      const opMins = windowDays*480;
+      const avail = Math.max(0, Math.round((opMins-dtTotal)/opMins*100));
+      const barColor = avail>=95?'var(--green)':avail>=85?'var(--amber)':'var(--red)';
+      return `<tr>
+        <td><b>${esc(machine)}</b></td>
+        <td>${recs.length}</td>
+        <td>${dtTotal.toLocaleString()}</td>
+        <td>
+          <span style="font-weight:700;color:${barColor};">${avail}%</span>
+          <div class="avail-bar"><div class="avail-bar-fill" style="width:${avail}%;background:${barColor};"></div></div>
+        </td>
+        <td style="font-size:0.75rem;color:var(--text-soft);">${windowDays}วัน ช่วงข้อมูล</td>
+      </tr>`;
+    }).join('');
+  }
+
+  // ── Timeline ──
+  const tlWrap = document.getElementById('timelineWrap');
+  if(tlWrap && records.length){
+    const allDates = records.map(r=>r.date).filter(Boolean).sort();
+    const minDate = new Date(allDates[0]+'T00:00:00');
+    const maxDate = new Date(allDates[allDates.length-1]+'T00:00:00');
+    const span = Math.max(1,(maxDate-minDate)/(1000*60*60*24));
+    const tlColors = palette(10);
+    const machines = [...new Set(records.map(r=>r.machine))].sort((a,b)=>{
+      const da=records.filter(r=>r.machine===a).reduce((s,r)=>s+r.downtime,0);
+      const db=records.filter(r=>r.machine===b).reduce((s,r)=>s+r.downtime,0);
+      return db-da;
+    }).slice(0,10);
+    // Header months
+    const months = new Set(allDates.map(d=>d.slice(0,7)));
+    let headerHtml = '<div class="tl-header">';
+    [...months].sort().forEach(ym=>{
+      headerHtml+=`<div class="tl-month-label" style="flex:1;">${monthLabel(ym)}</div>`;
+    });
+    headerHtml += '</div>';
+    let rowsHtml = '';
+    machines.forEach((machine,mi)=>{
+      const recs = records.filter(r=>r.machine===machine && r.date);
+      const color = tlColors[mi % tlColors.length];
+      let segs = '';
+      recs.forEach(r=>{
+        const d = new Date(r.date+'T00:00:00');
+        if(isNaN(d)) return;
+        const left = Math.round((d-minDate)/(1000*60*60*24)/span*100);
+        const width = Math.max(0.8, Math.round(r.downtime/480*2));
+        segs+=`<div class="tl-seg" style="left:${left}%;width:${width}%;background:${color};" title="${esc(machine)}: ${r.downtime}นาที (${formatDate(r.date)})"></div>`;
+      });
+      rowsHtml+=`<div class="tl-row"><div class="tl-label" title="${esc(machine)}">${esc(machine)}</div><div class="tl-track">${segs}</div></div>`;
+    });
+    tlWrap.innerHTML = headerHtml + rowsHtml;
+  }
 }
 
 // ---------- Export modal ----------
@@ -1827,20 +2388,55 @@ function exportPDF(data){
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({orientation:'landscape', unit:'mm', format:'a4'});
 
+  // ── Title
   doc.setFont('Sarabun','bold');
   doc.setFontSize(14);
   doc.text('รายงานปัญหาและ Downtime (Problem & Downtime Report)', 14, 12);
+
+  // ── Sub-header
   doc.setFont('Sarabun','normal');
   doc.setFontSize(9);
   const totalDowntime = data.reduce((s,r)=>s+r.downtime,0);
-  doc.text(`สร้างเมื่อ: ${new Date().toLocaleString('th-TH')}    จำนวนรายการ: ${data.length}    Downtime รวม: ${totalDowntime} นาที`, 14, 18);
+  doc.text(`สร้างเมื่อ: ${new Date().toLocaleString('th-TH')}    จำนวนรายการ: ${data.length}    Downtime รวม: ${totalDowntime.toLocaleString()} นาที`, 14, 18);
 
+  // ── MTBF / MTTR Summary box
+  const mttr = data.length > 0 ? Math.round(totalDowntime / data.length) : 0;
+  let mtbf = 0;
+  if(data.length > 0){
+    const dates = data.map(r=>r.date).filter(Boolean).sort();
+    const firstDate = new Date(dates[0]+'T00:00:00');
+    const lastDate  = new Date(dates[dates.length-1]+'T00:00:00');
+    const windowDays = Math.max(1, Math.round((lastDate-firstDate)/(1000*60*60*24))+1);
+    const uptime = Math.max(0, windowDays*480 - totalDowntime);
+    mtbf = Math.round(uptime / data.length);
+  }
+
+  // Summary KPI row
+  const kpis = [
+    { label:'จำนวนเหตุการณ์', value: data.length+' ครั้ง' },
+    { label:'Downtime รวม',    value: totalDowntime.toLocaleString()+' นาที' },
+    { label:'MTTR (เฉลี่ย/ครั้ง)', value: mttr.toLocaleString()+' นาที' },
+    { label:'MTBF (ประมาณการ)',    value: mtbf.toLocaleString()+' นาที' },
+  ];
+  const boxY = 23, boxH = 16, colW = 68;
+  kpis.forEach((kpi, i) => {
+    const x = 14 + i * colW;
+    doc.setFillColor(15, 41, 66);
+    doc.roundedRect(x, boxY, colW-3, boxH, 2, 2, 'F');
+    doc.setFont('Sarabun','normal'); doc.setFontSize(7.5); doc.setTextColor(180,200,220);
+    doc.text(kpi.label, x+3, boxY+5.5);
+    doc.setFont('Sarabun','bold'); doc.setFontSize(10); doc.setTextColor(255,255,255);
+    doc.text(kpi.value, x+3, boxY+13);
+  });
+  doc.setTextColor(0,0,0);
+
+  // ── Data table
   const body = data.map((r,i)=>[
     i+1, formatDate(r.date), r.problem, formatTime(r.start), formatTime(r.end), r.downtime, r.machine, r.location, r.solution, r.rootcause, r.parts, r.note
   ]);
 
   doc.autoTable({
-    startY: 24,
+    startY: boxY + boxH + 5,
     head: [['ลำดับ','วันที่','ปัญหา','เวลาเริ่ม','เวลาเสร็จ','Downtime(นาที)','เครื่อง','สถานที่','วิธีแก้ไข','ปัญหาที่แท้จริง','อะไหล่ที่เสีย','หมายเหตุ']],
     body: body,
     styles:{font:'Sarabun', fontStyle:'normal', fontSize:7.5, cellPadding:2, overflow:'linebreak', valign:'top'},
@@ -1863,6 +2459,9 @@ function todayStr(){
 
 // ---------- Init ----------
 document.getElementById('f-date').value = new Date().toISOString().slice(0,10);
+// Load saved target
+const savedTarget = localStorage.getItem('dtTarget');
+if(savedTarget){ downtimeTarget = Number(savedTarget); const inp=document.getElementById('targetInput'); if(inp) inp.value=savedTarget; }
 renderTable();
 renderDashboard();
 renderAnalysis();
