@@ -53,30 +53,31 @@
     --transition:background .25s ease, color .25s ease, border-color .25s ease, box-shadow .25s ease;
   }
   [data-theme="dark"]{
-    --navy:#7cb9f4;
-    --navy-light:#a8d4ff;
-    --steel:#89b8d8;
-    --indigo:#9ca8ff;
-    --indigo-light:#b8c2ff;
-    --amber:#fcd34d;
-    --amber-light:#3d2e0a;
-    --green:#4ade80;
-    --green-light:#0a3320;
-    --red:#fc8181;
-    --red-light:#3d0a0a;
-    --teal:#34d9c8;
-    --purple:#b89bff;
-    --cyan:#38e4f5;
-    --bg:#0f1923;
-    --bg-grad:linear-gradient(135deg,#0f1923 0%,#151f2e 50%,#111c2a 100%);
-    --card:#1c2a3d;
-    --card-soft:#233248;
-    --border:#2e4060;
-    --text:#eaf0fa;
-    --text-soft:#90a8c2;
-    --shadow:0 2px 14px rgba(0,0,0,0.45);
-    --shadow-md:0 10px 36px rgba(0,0,0,0.6);
-    --header-grad:linear-gradient(135deg,#0d1e35 0%,#1a3358 40%,#243d6b 70%,#1e4570 100%);
+    --navy:#60a5fa;
+    --navy-light:#93c5fd;
+    --steel:#7ba7c4;
+    --indigo:#818cf8;
+    --indigo-light:#a5b4fc;
+    --amber:#f59e0b;
+    --amber-light:#1f1708;
+    --green:#34d399;
+    --green-light:#052e1c;
+    --red:#f87171;
+    --red-light:#2d0d0d;
+    --teal:#2dd4bf;
+    --purple:#a78bfa;
+    --cyan:#22d3ee;
+    /* ── Neutral dark backgrounds (charcoal-zinc scale) ── */
+    --bg:#111318;
+    --bg-grad:linear-gradient(160deg,#111318 0%,#13161d 60%,#111318 100%);
+    --card:#1c1f27;
+    --card-soft:#22262f;
+    --border:#2d3141;
+    --text:#e2e8f4;
+    --text-soft:#8b96ae;
+    --shadow:0 1px 8px rgba(0,0,0,0.5), 0 4px 20px rgba(0,0,0,0.35);
+    --shadow-md:0 8px 40px rgba(0,0,0,0.65);
+    --header-grad:linear-gradient(135deg,#0d1117 0%,#161b27 45%,#1a2236 70%,#14203a 100%);
   }
   *{box-sizing:border-box; margin:0; padding:0;}
   body{
@@ -145,7 +146,7 @@
     background:#fff; transition:transform .25s ease, background .25s;
     display:flex; align-items:center; justify-content:center; font-size:10px;
   }
-  [data-theme="dark"] .theme-toggle .knob{ transform:translateX(18px); background:#0e1620; }
+  [data-theme="dark"] .theme-toggle .knob{ transform:translateX(18px); background:#111318; }
   .theme-toggle span.label{font-size:0.78rem; color:#e3edf7; font-weight:600;}
 
   .container{max-width:1400px; margin:0 auto; padding:24px 20px;}
@@ -264,9 +265,9 @@
   .badge-low{background:#e3f4ec; color:var(--green);}
   .badge-mid{background:#fff3e0; color:var(--amber);}
   .badge-high{background:#fde6e4; color:var(--red);}
-  [data-theme="dark"] .badge-low{background:rgba(63,194,139,0.16);}
-  [data-theme="dark"] .badge-mid{background:rgba(240,162,63,0.16);}
-  [data-theme="dark"] .badge-high{background:rgba(239,93,82,0.18);}
+  [data-theme="dark"] .badge-low{background:rgba(52,211,153,0.13); color:#34d399;}
+  [data-theme="dark"] .badge-mid{background:rgba(245,158,11,0.13); color:#f59e0b;}
+  [data-theme="dark"] .badge-high{background:rgba(248,113,113,0.14); color:#f87171;}
   .col-action{white-space:nowrap;}
   .icon-btn{
     border:none; background:none; cursor:pointer; font-size:1rem; padding:5px 6px;
@@ -341,9 +342,9 @@
   .toast.success{background:#e8f8f0; color:#1a6640; border-color:#a3d9b8;}
   .toast.error  {background:#fde8e8; color:#8b1a1a; border-color:#f4a0a0;}
   .toast.info   {background:#e8f0fb; color:#1a3a6e; border-color:#a0baf4;}
-  [data-theme="dark"] .toast.success{background:#163a25; color:#7ed8a8; border-color:#2a6644;}
-  [data-theme="dark"] .toast.error  {background:#3a1616; color:#f4a0a0; border-color:#8b1a1a;}
-  [data-theme="dark"] .toast.info   {background:#16253a; color:#a0baf4; border-color:#1a3a6e;}
+  [data-theme="dark"] .toast.success{background:#0d2a1a; color:#34d399; border-color:#1a4730;}
+  [data-theme="dark"] .toast.error  {background:#240d0d; color:#f87171; border-color:#4a1818;}
+  [data-theme="dark"] .toast.info   {background:#0e1628; color:#93c5fd; border-color:#1e2e50;}
   .toast-out{animation:toastOut .3s ease forwards;}
   @keyframes toastIn {from{opacity:0;transform:translateX(30px)} to{opacity:1;transform:translateX(0)}}
   @keyframes toastOut{from{opacity:1;transform:translateX(0)} to{opacity:0;transform:translateX(30px)}}
@@ -439,6 +440,62 @@
   .kpi-card.purple{border-left-color:#6d4c9f;}
   .kpi-card.purple .kpi-value{color:#6d4c9f;}
 
+  /* Dark mode – MTBF/MTTR teal/purple use higher-contrast shades */
+  [data-theme="dark"] .kpi-card.teal{border-left-color:var(--teal);}
+  [data-theme="dark"] .kpi-card.teal .kpi-value{color:var(--teal);}
+  [data-theme="dark"] .kpi-card.purple{border-left-color:var(--purple);}
+  [data-theme="dark"] .kpi-card.purple .kpi-value{color:var(--purple);}
+
+  /* Dark mode – input/select focus ring */
+  [data-theme="dark"] input:focus,
+  [data-theme="dark"] select:focus,
+  [data-theme="dark"] textarea:focus{
+    border-color:var(--indigo); box-shadow:0 0 0 3px rgba(129,140,248,0.18);
+  }
+
+  /* Dark mode – modal backdrop deeper */
+  [data-theme="dark"] .modal-bg{background:rgba(0,0,0,0.72);}
+
+  /* Dark mode – scrollbar subtle tint */
+  [data-theme="dark"] ::-webkit-scrollbar{width:7px; height:7px;}
+  [data-theme="dark"] ::-webkit-scrollbar-track{background:var(--bg);}
+  [data-theme="dark"] ::-webkit-scrollbar-thumb{background:var(--border); border-radius:4px;}
+  [data-theme="dark"] ::-webkit-scrollbar-thumb:hover{background:var(--text-soft);}
+
+  /* ── Loading Overlay ── */
+  #loadingOverlay{
+    position:fixed; inset:0; z-index:9999;
+    background:var(--bg);
+    display:flex; align-items:center; justify-content:center;
+    transition:opacity .4s ease, visibility .4s ease;
+  }
+  #loadingOverlay.hidden{
+    opacity:0; visibility:hidden; pointer-events:none;
+  }
+  .lo-box{
+    display:flex; flex-direction:column; align-items:center; gap:18px;
+    padding:40px 48px; border-radius:var(--radius);
+    background:var(--card); border:1px solid var(--border);
+    box-shadow:var(--shadow-md); text-align:center; max-width:340px; width:90%;
+  }
+  .lo-spinner{
+    width:52px; height:52px; border-radius:50%;
+    border:4px solid var(--border);
+    border-top-color:var(--navy);
+    animation:loSpin .9s linear infinite;
+  }
+  @keyframes loSpin{to{transform:rotate(360deg)}}
+  .lo-title{font-size:1.05rem; font-weight:700; color:var(--text);}
+  .lo-sub{font-size:0.83rem; color:var(--text-soft); min-height:1.2em;}
+  .lo-dots{display:flex; gap:7px; justify-content:center;}
+  .lo-dots span{
+    width:8px; height:8px; border-radius:50%; background:var(--navy); opacity:.25;
+    animation:loPulse 1.2s ease-in-out infinite;
+  }
+  .lo-dots span:nth-child(2){animation-delay:.2s;}
+  .lo-dots span:nth-child(3){animation-delay:.4s;}
+  @keyframes loPulse{0%,80%,100%{opacity:.2; transform:scale(.85)} 40%{opacity:1; transform:scale(1)}}
+
   /* Mobile card view — hidden on desktop */
   .mobile-cards{display:none;}
   @media(max-width:768px){
@@ -471,6 +528,16 @@
 </style>
 </head>
 <body>
+
+<!-- ── Loading Overlay ── -->
+<div id="loadingOverlay" aria-live="polite" aria-label="กำลังโหลดข้อมูล">
+  <div class="lo-box">
+    <div class="lo-spinner"></div>
+    <div class="lo-title">กำลังโหลดข้อมูล</div>
+    <div class="lo-sub" id="loSub">กำลังเชื่อมต่อ Google Sheets…</div>
+    <div class="lo-dots"><span></span><span></span><span></span></div>
+  </div>
+</div>
 
 <div id="toastContainer"></div>
 
@@ -885,7 +952,9 @@
 <script>
 // ===== Google Sheets Web App URL =====
 const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbwNZJwXZuGIVxKbLRR6FPvA0z_mmdJw35UKF2LXaJWVuvvE2cN5JdUNWBMQM1YqPER3Jw/exec';
-const API_SECRET = 'DT2024SECRET'; // ต้องตรงกับ SECRET ใน Apps Script
+// หมายเหตุ: token นี้อยู่ใน client-side — ใช้เพื่อกันการเรียกโดยไม่ตั้งใจเท่านั้น
+// ความปลอดภัยที่แท้จริงให้ตั้งค่า domain restriction ใน Apps Script
+const API_SECRET = 'DT2024SECRET';
 function apiUrl(params=''){ return SHEET_API_URL + '?token=' + API_SECRET + (params ? '&'+params : ''); }
 
 let records = [];
@@ -972,8 +1041,8 @@ function rangeLabel(range){
 function applyCustomRange(){
   const f = document.getElementById('dashFrom').value;
   const t = document.getElementById('dashTo').value;
-  if(!f || !t){ alert('กรุณาเลือกวันที่เริ่มต้นและสิ้นสุด'); return; }
-  if(f > t){ alert('วันที่เริ่มต้นต้องไม่เกินวันที่สิ้นสุด'); return; }
+  if(!f || !t){ showToast('กรุณาเลือกวันที่เริ่มต้นและสิ้นสุด', 'error'); return; }
+  if(f > t){ showToast('วันที่เริ่มต้นต้องไม่เกินวันที่สิ้นสุด', 'error'); return; }
   dashCustomFrom = new Date(f + 'T00:00:00');
   dashCustomTo   = new Date(t + 'T23:59:59');
   dashRange = 'custom';
@@ -1279,19 +1348,19 @@ function sanitizeRecord(r){
   }
 
   const record = {
-    id:        toStr(getFieldOrIndex(r, ['id','ID'], 0)),                    // row[0]
-    date:      toDate(getFieldOrIndex(r, ['date','วันที่','Date'], 1)),       // row[1]
-    shift:     toStr(getFieldOrIndex(r, ['shift','กะ','Shift'], 2)).trim().toUpperCase(), // row[2]
-    problem:   toStr(getFieldOrIndex(r, ['problem','ปัญหา','start'], 3)),    // row[3] - Apps Script sends problem under "start"
-    start:     toTime(getFieldOrIndex(r, ['start','เวลาเริ่ม','end'], 4)),   // row[4] - Apps Script sends start under "end"
-    end:       toTime(getFieldOrIndex(r, ['end','เวลาเสร็จ','downtime'], 5)), // row[5]
-    downtime:  dt,                                                             // row[6]
-    machine:   toStr(getFieldOrIndex(r, ['machine','เครื่อง','location'], 7)), // row[7] - Apps Script sends machine under "location"
-    location:  toStr(getFieldOrIndex(r, ['location','สถานที่','problem'], 8)), // row[8] - Apps Script sends location under "problem"
-    solution:  toStr(getFieldOrIndex(r, ['solution','วิธีแก้ไข'], 9)),        // row[9]
-    rootcause: toStr(getFieldOrIndex(r, ['rootcause','ปัญหาที่แท้จริง'], 10)), // row[10]
-    parts:     toStr(getFieldOrIndex(r, ['parts','อะไหล่ที่เสีย'], 11)),      // row[11]
-    note:      toStr(getFieldOrIndex(r, ['note','หมายเหตุ',''], 12))         // row[12]
+    id:        toStr(getFieldOrIndex(r, ['id','ID'], 0)),
+    date:      toDate(getFieldOrIndex(r, ['date','วันที่','Date'], 1)),
+    shift:     toStr(getFieldOrIndex(r, ['shift','กะ','Shift'], 2)).trim().toUpperCase(),
+    problem:   toStr(getFieldOrIndex(r, ['problem','ปัญหา','start'], 3)),
+    start:     toTime(getFieldOrIndex(r, ['start','เวลาเริ่ม','end'], 4)),
+    end:       toTime(getFieldOrIndex(r, ['end','เวลาเสร็จ','downtime'], 5)),
+    downtime:  dt,
+    machine:   toStr(getFieldOrIndex(r, ['machine','เครื่อง','location'], 7)),
+    location:  toStr(getFieldOrIndex(r, ['location','สถานที่','problem'], 8)),
+    solution:  toStr(getFieldOrIndex(r, ['solution','วิธีแก้ไข'], 9)),
+    rootcause: toStr(getFieldOrIndex(r, ['rootcause','ปัญหาที่แท้จริง'], 10)),
+    parts:     toStr(getFieldOrIndex(r, ['parts','อะไหล่ที่เสีย'], 11)),
+    note:      toStr(getFieldOrIndex(r, ['note','หมายเหตุ',''], 12))
   };
   // If end time is missing or shows 00:00, but we have start + downtime, compute end = start + downtime
   const isZeroEnd = !record.end || record.end === '00:00' || record.end === '0:00';
@@ -1318,7 +1387,19 @@ try {
 }
 
 // ---------- Load data from Google Sheet ----------
+function showLoading(msg){
+  const el = document.getElementById('loadingOverlay');
+  const sub = document.getElementById('loSub');
+  if(sub) sub.textContent = msg || 'กำลังเชื่อมต่อ Google Sheets…';
+  if(el) el.classList.remove('hidden');
+}
+function hideLoading(){
+  const el = document.getElementById('loadingOverlay');
+  if(el) el.classList.add('hidden');
+}
+
 async function loadFromSheet(){
+  showLoading('กำลังเชื่อมต่อ Google Sheets…');
   setSyncStatus('syncing', '⏳ กำลังโหลดข้อมูล...');
   try{
     const res = await fetch(apiUrl(), { redirect: 'follow', cache: 'no-cache' });
@@ -1326,6 +1407,7 @@ async function loadFromSheet(){
     if(json.status === 'error' && json.error === 'Unauthorized'){
       setSyncStatus('error', '⛔ Token ไม่ถูกต้อง — ตรวจสอบ API_SECRET');
       showToast('⛔ API Token ไม่ถูกต้อง', 'error');
+      hideLoading();
       return;
     }
     if(json.status === 'ok' && Array.isArray(json.records)){
@@ -1348,6 +1430,7 @@ async function loadFromSheet(){
     setSyncStatus('error', '⚠️ โหลดจาก Sheet ไม่ได้ (ใช้ข้อมูลในเครื่อง)');
     records = records.map(r => sanitizeRecord(r));
   }
+  hideLoading();
   renderTable();
   renderDashboard();
   renderAnalysis();
@@ -1949,7 +2032,7 @@ function renderPareto(dash){
   let cum = 0;
   const cumPct = sorted.map(e=>{ cum+=e[1]; return Math.round(cum/total*100); });
   const isDark = document.documentElement.getAttribute('data-theme')==='dark';
-  const tc = isDark ? '#e2eaf5' : '#1a2840';
+  const tc = isDark ? '#e2e8f4' : '#1a2840';
   if(charts['chartPareto']) charts['chartPareto'].destroy();
   const ctx = document.getElementById('chartPareto');
   if(!ctx) return;
@@ -2092,8 +2175,8 @@ function drawChart(id, type, data, options){
   const ctx = document.getElementById(id);
   if(charts[id]) charts[id].destroy();
   const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-  const textColor = isDark ? '#e6edf5' : '#1f2d3a';
-  const gridColor = isDark ? 'rgba(255,255,255,0.07)' : 'rgba(15,41,66,0.06)';
+  const textColor = isDark ? '#e2e8f4' : '#1f2d3a';
+  const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(15,41,66,0.06)';
 
   const baseOptions = {
     responsive:true, maintainAspectRatio:false,
@@ -2347,7 +2430,7 @@ function updateExpPreview(){
 
 function doExport(){
   const data = getExportFiltered();
-  if(data.length === 0){ alert('ไม่มีข้อมูลที่ตรงเงื่อนไข'); return; }
+  if(data.length === 0){ showToast('ไม่มีข้อมูลที่ตรงเงื่อนไข', 'error'); return; }
   closeExportModal();
   if(exportType === 'excel') exportExcel(data);
   else                       exportPDF(data);
@@ -2356,7 +2439,7 @@ function doExport(){
 // ---------- Export Excel ----------
 function exportExcel(data){
   if(!data){ data = records; }
-  if(data.length===0){ alert('ไม่มีข้อมูลให้ export'); return; }
+  if(data.length===0){ showToast('ไม่มีข้อมูลให้ export', 'error'); return; }
   const rows = data.map((r,i)=>({
     'ลำดับ': i+1,
     'วันที่': formatDate(r.date),
@@ -2384,7 +2467,7 @@ function exportExcel(data){
 // ---------- Export PDF ----------
 function exportPDF(data){
   if(!data){ data = records; }
-  if(data.length===0){ alert('ไม่มีข้อมูลให้ export'); return; }
+  if(data.length===0){ showToast('ไม่มีข้อมูลให้ export', 'error'); return; }
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({orientation:'landscape', unit:'mm', format:'a4'});
 
@@ -2470,6 +2553,7 @@ renderAnalysis();
 if(window.location.protocol === 'file:'){
   setSyncStatus('error', '⚠️ เปิดจาก file:// — Sheet เชื่อมต่อไม่ได้ กรุณาอัพโหลดไฟล์ขึ้น Web Server หรือ GitHub Pages');
   console.warn('ไม่สามารถเชื่อมต่อ Google Sheets ได้เมื่อเปิดจาก file:// protocol');
+  hideLoading();
 } else {
   loadFromSheet();
 }
